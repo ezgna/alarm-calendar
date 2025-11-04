@@ -22,6 +22,7 @@ export default function DrawerLayout() {
     <Drawer
       screenOptions={{
         drawerStyle: { width: 200 },
+        swipeEnabled: false,
       }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
