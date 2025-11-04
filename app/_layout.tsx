@@ -1,23 +1,11 @@
-import { Drawer } from "expo-router/drawer";
-import "../global.css";
+import { Stack } from "expo-router";
+import "../global.css"
 
 export default function RootLayout() {
   return (
-    <Drawer>
-      <Drawer.Screen
-        name="index"
-        options={{
-          drawerLabel: "Home",
-          title: "overview",
-        }}
-      />
-      <Drawer.Screen
-        name="example"
-        options={{
-          drawerLabel: "User",
-          title: "overview",
-        }}
-      />
-    </Drawer>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(drawer)" />
+      <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
+    </Stack>
   );
 }
