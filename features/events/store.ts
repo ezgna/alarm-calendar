@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { mmkvStorage } from '../storage/mmkv';
 import { currentTimeZone, formatLocalDay, fromUtcIsoToLocalDate, startOfDay, addDays, addMinutes } from '../../lib/date';
+import { useNotificationStore } from '../notifications/store';
 
 export type EventItem = {
   id: string;
@@ -20,9 +21,11 @@ type State = {
   lastIndexedTz?: string;
 };
 
+type AddUpdateOptions = { patternKey?: import('../notifications/store').PatternKey };
+
 type Actions = {
-  add: (input: Omit<EventItem, 'id'>) => string;
-  update: (id: string, patch: Partial<EventItem>) => void;
+  add: (input: Omit<EventItem, 'id'>, opts?: AddUpdateOptions) => string;
+  update: (id: string, patch: Partial<EventItem>, opts?: AddUpdateOptions) => void;
   remove: (id: string) => void;
   rebuildIndex: (tz?: string) => void;
   getEventsByLocalDay: (date: Date) => EventItem[];
@@ -50,7 +53,7 @@ export const useEventStore = create<State & Actions>()(
 
       setHydrated: (v) => set({ hydrated: v }),
 
-      add: (input) => {
+      add: (input, opts) => {
         const id = genId();
         set((s) => {
           let { startAt, endAt } = input;
@@ -63,10 +66,22 @@ export const useEventStore = create<State & Actions>()(
         // 差分インデックス更新
         const tz = get().lastIndexedTz ?? currentTimeZone();
         get().rebuildIndex(tz);
+        // 通知スケジュール（選択パターンを優先）
+        try {
+          const ev = get().eventsById[id];
+          if (ev) {
+            const ns = useNotificationStore.getState();
+            if (opts?.patternKey) {
+              ns.setEventPattern(ev.id, opts.patternKey);
+              ns.setLastUsedPatternKey(opts.patternKey);
+            }
+            ns.rescheduleForEvent({ id: ev.id, title: ev.title, startAt: ev.startAt }, opts?.patternKey).catch(() => {});
+          }
+        } catch {}
         return id;
       },
 
-      update: (id, patch) => {
+      update: (id, patch, opts) => {
         set((s) => {
           const cur = s.eventsById[id];
           if (!cur) return {} as State;
@@ -79,6 +94,18 @@ export const useEventStore = create<State & Actions>()(
         });
         const tz = get().lastIndexedTz ?? currentTimeZone();
         get().rebuildIndex(tz);
+        // 通知再スケジュール（選択パターンを優先）
+        try {
+          const ev = get().eventsById[id];
+          if (ev) {
+            const ns = useNotificationStore.getState();
+            if (opts?.patternKey) {
+              ns.setEventPattern(ev.id, opts.patternKey);
+              ns.setLastUsedPatternKey(opts.patternKey);
+            }
+            ns.rescheduleForEvent({ id: ev.id, title: ev.title, startAt: ev.startAt }, opts?.patternKey).catch(() => {});
+          }
+        } catch {}
       },
 
       remove: (id) => {
@@ -88,6 +115,10 @@ export const useEventStore = create<State & Actions>()(
         });
         const tz = get().lastIndexedTz ?? currentTimeZone();
         get().rebuildIndex(tz);
+        // 通知取消
+        try {
+          useNotificationStore.getState().cancelForEvent(id).catch(() => {});
+        } catch {}
       },
 
       rebuildIndex: (tz) => {
