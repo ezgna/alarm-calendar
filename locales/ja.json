@@ -1,9 +1,9 @@
 {
   "ios": {
-    "CFBundleDisplayName": "アラームカレンダー",
-    "CFBundleName": "アラームカレンダー"
+    "CFBundleDisplayName": "ドタキャン番長",
+    "CFBundleName": "ドタキャン番長"
   },
   "android": {
-    "app_name": "アラームカレンダー"
+    "app_name": "ドタキャン番長"
   }
 }

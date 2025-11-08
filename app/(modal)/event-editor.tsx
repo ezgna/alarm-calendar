@@ -6,8 +6,10 @@ import ColorPicker from '../../components/common/ColorPicker';
 import { DEFAULT_COLOR_ID } from '../../components/common/colorVariants';
 import { useEventStore } from '../../features/events/store';
 import { addMinutes, fromUtcIsoToLocalDate, toUtcIsoString } from '../../lib/date';
+import { useThemeTokens } from '../../features/theme/useTheme';
 
 export default function EventEditor() {
+  const { t } = useThemeTokens();
   const params = useLocalSearchParams<{ id?: string; date?: string }>();
   const id = typeof params.id === 'string' ? params.id : undefined;
   const initialDateStr = typeof params.date === 'string' ? params.date : undefined;
@@ -78,11 +80,11 @@ export default function EventEditor() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white pt-12 p-4" contentContainerStyle={{ gap: 16 }}>
+    <ScrollView className={`flex-1 pt-12 p-4 ${t.surfaceBg}`} contentContainerStyle={{ gap: 16 }}>
       <View className="gap-2">
-        <Text className="text-sm text-neutral-600">タイトル（必須）</Text>
+        <Text className={`text-sm ${t.textMuted}`}>タイトル（必須）</Text>
         <TextInput
-          className="border border-neutral-300 rounded-md px-3 py-2"
+          className={`border rounded-md px-3 py-2 ${t.border}`}
           placeholder="タイトル"
           value={title}
           onChangeText={setTitle}
@@ -90,11 +92,11 @@ export default function EventEditor() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm text-neutral-600">開始日時</Text>
+        <Text className={`text-sm ${t.textMuted}`}>開始日時</Text>
         {Platform.OS === 'android' ? (
           <View className="flex-row gap-2">
             <TouchableOpacity
-              className="px-3 py-2 rounded-md bg-neutral-100"
+              className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`}
               onPress={() => setShowStartPicker(true)}
             >
               <Text>{start.toLocaleString()}</Text>
@@ -117,11 +119,11 @@ export default function EventEditor() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm text-neutral-600">終了日時</Text>
+        <Text className={`text-sm ${t.textMuted}`}>終了日時</Text>
         {Platform.OS === 'android' ? (
           <View className="flex-row gap-2">
             <TouchableOpacity
-              className="px-3 py-2 rounded-md bg-neutral-100"
+              className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`}
               onPress={() => setShowEndPicker(true)}
             >
               <Text>{end.toLocaleString()}</Text>
@@ -144,14 +146,14 @@ export default function EventEditor() {
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm text-neutral-600">カテゴリ色</Text>
+        <Text className={`text-sm ${t.textMuted}`}>カテゴリ色</Text>
         <ColorPicker value={colorId} onChange={setColorId} />
       </View>
 
       <View className="gap-2">
-        <Text className="text-sm text-neutral-600">メモ</Text>
+        <Text className={`text-sm ${t.textMuted}`}>メモ</Text>
         <TextInput
-          className="border border-neutral-300 rounded-md px-3 py-2 h-24"
+          className={`border rounded-md px-3 py-2 h-24 ${t.border}`}
           placeholder="メモ"
           value={memo}
           onChangeText={setMemo}
@@ -161,16 +163,16 @@ export default function EventEditor() {
 
       <View className="flex-row gap-4 mt-4">
         {existing ? (
-          <TouchableOpacity className="px-4 py-2 rounded-md bg-red-600" onPress={confirmDelete}>
-            <Text className="text-white font-semibold">削除</Text>
+          <TouchableOpacity className={`px-4 py-2 rounded-md ${t.dangerBg}`} onPress={confirmDelete}>
+            <Text className={`${t.dangerText} font-semibold`}>削除</Text>
           </TouchableOpacity>
         ) : null}
         <View className="flex-1" />
-        <TouchableOpacity className="px-4 py-2 rounded-md bg-neutral-200" onPress={() => router.back()}>
-          <Text className="text-neutral-900 font-semibold">キャンセル</Text>
+        <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => router.back()}>
+          <Text className={`${t.buttonNeutralText} font-semibold`}>キャンセル</Text>
         </TouchableOpacity>
-        <TouchableOpacity className="px-4 py-2 rounded-md bg-blue-600" onPress={onSave}>
-          <Text className="text-white font-semibold">保存</Text>
+        <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={onSave}>
+          <Text className={`${t.buttonPrimaryText} font-semibold`}>保存</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

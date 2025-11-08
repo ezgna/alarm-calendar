@@ -1,0 +1,117 @@
+// テーマのセマンティック・トークン定義（ライト限定）
+// 注意: 動的クラス生成はせず、ここでリテラル列挙して NativeWind/Tailwind に検出させる
+
+export type Flavor = 'simple' | 'mist' | 'rose';
+
+export type ThemeClassTokens = {
+  // ベース
+  appBg: string; // 画面ルート背景
+  surfaceBg: string; // セル/カード等の面
+  text: string; // 主要テキスト
+  textMuted: string; // 補助テキスト
+  border: string; // 枠線
+  divider: string; // 罫線
+
+  // ヘッダー
+  headerBg: string;
+  headerBorder: string;
+  timeText: string; // 時刻ラベル等
+
+  // ボタン
+  buttonPrimaryBg: string;
+  buttonPrimaryText: string;
+  buttonNeutralBg: string;
+  buttonNeutralText: string;
+  dangerBg: string;
+  dangerText: string;
+
+  // バッジ等
+  badgeTodayBg: string;
+  badgeTodayText: string;
+};
+
+export type ThemeHexTokens = {
+  appBg?: string;
+  divider?: string;
+};
+
+export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
+  // 現状踏襲のニュートラル基調
+  simple: {
+    appBg: 'bg-white',
+    surfaceBg: 'bg-white',
+    text: 'text-neutral-900',
+    textMuted: 'text-neutral-600',
+    border: 'border-neutral-200',
+    divider: 'bg-neutral-200',
+
+    headerBg: 'bg-white',
+    headerBorder: 'border-neutral-200',
+    timeText: 'text-neutral-500',
+
+    buttonPrimaryBg: 'bg-blue-600',
+    buttonPrimaryText: 'text-white',
+    buttonNeutralBg: 'bg-neutral-100',
+    buttonNeutralText: 'text-neutral-900',
+    dangerBg: 'bg-red-600',
+    dangerText: 'text-white',
+
+    badgeTodayBg: 'bg-blue-600',
+    badgeTodayText: 'text-white',
+  },
+
+  // #e0ecec を基調
+  mist: {
+    appBg: 'bg-[#e0ecec]',
+    surfaceBg: 'bg-white',
+    text: 'text-neutral-900',
+    textMuted: 'text-neutral-600',
+    border: 'border-[#c7d7d7]',
+    divider: 'bg-[#c7d7d7]',
+
+    headerBg: 'bg-[#e0ecec]',
+    headerBorder: 'border-[#c7d7d7]',
+    timeText: 'text-neutral-600',
+
+    buttonPrimaryBg: 'bg-teal-600',
+    buttonPrimaryText: 'text-white',
+    buttonNeutralBg: 'bg-[#d5e3e3]',
+    buttonNeutralText: 'text-neutral-900',
+    dangerBg: 'bg-red-600',
+    dangerText: 'text-white',
+
+    badgeTodayBg: 'bg-teal-600',
+    badgeTodayText: 'text-white',
+  },
+
+  // ピンク系（rose）
+  rose: {
+    appBg: 'bg-rose-50',
+    surfaceBg: 'bg-white',
+    text: 'text-rose-950',
+    textMuted: 'text-rose-700',
+    border: 'border-rose-200',
+    divider: 'bg-rose-200',
+
+    headerBg: 'bg-rose-50',
+    headerBorder: 'border-rose-200',
+    timeText: 'text-rose-600',
+
+    buttonPrimaryBg: 'bg-rose-500',
+    buttonPrimaryText: 'text-white',
+    buttonNeutralBg: 'bg-rose-100',
+    buttonNeutralText: 'text-rose-900',
+    dangerBg: 'bg-red-600',
+    dangerText: 'text-white',
+
+    badgeTodayBg: 'bg-rose-500',
+    badgeTodayText: 'text-white',
+  },
+};
+
+export const THEME_HEX_TOKENS: Record<Flavor, ThemeHexTokens> = {
+  simple: { appBg: '#ffffff', divider: '#e5e7eb' },
+  mist: { appBg: '#e0ecec', divider: '#c7d7d7' },
+  rose: { appBg: '#fff1f2', divider: '#fecdd3' },
+};
+

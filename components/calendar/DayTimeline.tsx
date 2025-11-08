@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { ScrollView, Text, View, Pressable, LayoutChangeEvent } from "react-native";
-import { useCalendarStore } from "../../features/calendar/store";
-import { useEventStore } from "../../features/events/store";
-import { addDays, formatLocalDay, startOfDay } from "../../lib/date";
-import EventBar from "../common/EventBar";
 import { router } from "expo-router";
+import React, { useMemo, useState } from "react";
+import { LayoutChangeEvent, Pressable, ScrollView, Text, View } from "react-native";
+import { useCalendarStore } from "../../features/calendar/store";
 import type { EventItem } from "../../features/events/store";
+import { useEventStore } from "../../features/events/store";
+import { useThemeTokens } from "../../features/theme/useTheme";
+import { formatLocalDay, startOfDay } from "../../lib/date";
+import EventBar from "../common/EventBar";
 
 const TIME_COL_WIDTH = 56;
 const HOUR_HEIGHT = 56;
@@ -22,6 +23,7 @@ function yToMinutes(y: number, step = 30) {
 }
 
 export default function DayTimeline() {
+  const { t } = useThemeTokens();
   const iso = useCalendarStore((s) => s.currentDate);
   const date = useMemo(() => new Date(iso), [iso]);
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
@@ -40,7 +42,6 @@ export default function DayTimeline() {
   type Positioned = { ev: EventItem; top: number; height: number; col: number; cols: number };
   const positioned = useMemo<Positioned[]>(() => {
     const dayStart = startOfDay(date);
-    const dayEnd = addDays(dayStart, 1);
     // 1) 対象日の範囲にクロップした区間を生成
     const mapped = events
       .map((ev) => {
@@ -102,7 +103,7 @@ export default function DayTimeline() {
   }, [events, date]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${t.surfaceBg}`}>
       {/* NOTE: 余白は高さに加算済み */}
       <ScrollView
         className="flex-1"
@@ -114,8 +115,8 @@ export default function DayTimeline() {
           <View style={{ width: TIME_COL_WIDTH }}>
             {Array.from({ length: 25 }, (_, h) => (
               <View key={h} style={{ height: HOUR_HEIGHT }} className="items-center">
-                <Text className="text-[10px] text-neutral-500">{h.toString().padStart(2, "0")}:00</Text>
-                <View className="h-px bg-neutral-200 w-full mt-1" />
+                <Text className={`text-[10px] ${t.timeText}`}>{h.toString().padStart(2, "0")}:00</Text>
+                <View className={`h-px w-full mt-1 ${t.divider}`} />
               </View>
             ))}
           </View>
@@ -135,7 +136,7 @@ export default function DayTimeline() {
             {/* 罫線（各時間の境界） */}
             {Array.from({ length: 25 }, (_, h) => (
               <View key={h} style={{ position: "absolute", top: h * HOUR_HEIGHT, left: 0, right: 0 }}>
-                <View className="h-px bg-neutral-200 w-full" />
+                <View className={`h-px w-full ${t.divider}`} />
               </View>
             ))}
 

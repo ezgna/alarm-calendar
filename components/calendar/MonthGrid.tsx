@@ -5,8 +5,10 @@ import { useCalendarStore } from "../../features/calendar/store";
 import { useEventStore } from "../../features/events/store";
 import { router } from "expo-router";
 import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
+import { useThemeTokens } from "../../features/theme/useTheme";
 
 export default function MonthGrid() {
+  const { t } = useThemeTokens();
   const [gridHeight, setGridHeight] = useState(0);
   const cell = gridHeight > 0 ? Math.floor(gridHeight / 6) : 0;
   const currentIso = useCalendarStore((s) => s.currentDate);
@@ -35,11 +37,11 @@ export default function MonthGrid() {
   );
 
   return (
-    <View className="flex-1 bg-white">
-      <View className="flex-row py-2 border-b border-neutral-200">
+    <View className={`flex-1 ${t.appBg}`}>
+      <View className={`flex-row py-2 border-b ${t.headerBorder}`}>
         {["日", "月", "火", "水", "木", "金", "土"].map((w) => (
           <View key={w} className="flex-1 items-center">
-            <Text className="text-neutral-500 text-xs">{w}</Text>
+            <Text className={`text-xs ${t.textMuted}`}>{w}</Text>
           </View>
         ))}
       </View>
@@ -51,7 +53,7 @@ export default function MonthGrid() {
           scrollEnabled={false}
           renderItem={({ item }) => (
             <TouchableOpacity
-              className={`flex-1 p-1 border-b border-r border-neutral-100 ${item.isCurrentMonth ? "bg-white" : "bg-neutral-50"}`}
+              className={`flex-1 p-1 border-b border-r ${t.border} ${item.isCurrentMonth ? t.surfaceBg : t.surfaceBg}`}
               style={{ height: cell || undefined }}
               onPress={() => {
                 // 日にちタップでその日に遷移
@@ -70,16 +72,16 @@ export default function MonthGrid() {
                 {/* 今日の日付は丸いバッジで強調（ブルー背景＋白文字） */}
                 <View className="items-start">
                   <View
-                    className={`${item.isToday ? "bg-blue-600" : "bg-transparent"} rounded-full items-center justify-center`}
+                    className={`${item.isToday ? t.badgeTodayBg : "bg-transparent"} rounded-full items-center justify-center`}
                     style={{ width: 24, height: 24 }}
                   >
                     <Text
                       className={`text-xs ${
                         item.isToday
-                          ? "text-white font-bold"
+                          ? `${t.badgeTodayText} font-bold`
                           : item.isCurrentMonth
-                          ? "text-neutral-900"
-                          : "text-neutral-400"
+                          ? t.text
+                          : t.textMuted
                       }`}
                     >
                       {item.date.getDate()}
@@ -92,13 +94,13 @@ export default function MonthGrid() {
                     return (
                       <View key={e.id} className="flex-row items-center gap-1">
                         <View className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                        <Text className="text-[10px] text-neutral-700" numberOfLines={1}>
+                        <Text className={`text-[10px] ${t.text}`} numberOfLines={1}>
                           {e.title}
                         </Text>
                       </View>
                     );
                   })}
-                  {item.events.length > 3 && <Text className="text-[10px] text-neutral-500">+{item.events.length - 3}</Text>}
+                  {item.events.length > 3 && <Text className={`text-[10px] ${t.textMuted}`}>+{item.events.length - 3}</Text>}
                 </View>
               </View>
             </TouchableOpacity>

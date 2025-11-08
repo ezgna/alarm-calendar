@@ -1,11 +1,12 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, View, Pressable, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from 'react-native';
-import { getWeekDates, formatLocalDay, startOfDay, addDays } from '../../lib/date';
-import { useCalendarStore } from '../../features/calendar/store';
-import { useEventStore } from '../../features/events/store';
-import EventBar from '../common/EventBar';
 import { router } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { LayoutChangeEvent, Pressable, ScrollView, Text, View } from 'react-native';
+import { useCalendarStore } from '../../features/calendar/store';
 import type { EventItem } from '../../features/events/store';
+import { useEventStore } from '../../features/events/store';
+import { useThemeTokens } from '../../features/theme/useTheme';
+import { formatLocalDay, getWeekDates, startOfDay } from '../../lib/date';
+import EventBar from '../common/EventBar';
 
 // 見やすさのための基準値
 const TIME_COL_WIDTH = 48; // 左の時刻欄の幅
@@ -25,6 +26,7 @@ function yToMinutes(y: number, step = 30) {
 }
 
 export default function WeekTimeline() {
+  const { t } = useThemeTokens();
   const iso = useCalendarStore((s) => s.currentDate);
   const date = useMemo(() => new Date(iso), [iso]);
   const days = useMemo(() => getWeekDates(date, 0), [date]);
@@ -55,7 +57,6 @@ export default function WeekTimeline() {
     return days.map((day, dayIndex) => {
       const evts = eventsByDay[dayIndex] || [];
       const dayStart = startOfDay(day);
-      const dayEnd = addDays(dayStart, 1);
       const mapped = evts
         .map((ev) => {
           const ls = new Date(ev.startAt);
@@ -113,17 +114,17 @@ export default function WeekTimeline() {
   }, [eventsByDay, days]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${t.surfaceBg}`}>
       {/* 上部の曜日ヘッダー */}
-      <View className="flex-row border-b border-neutral-200">
+      <View className={`flex-row border-b ${t.headerBorder}`}>
         <View style={{ width: TIME_COL_WIDTH }} className="items-center justify-center py-2">
-          <Text className="text-neutral-500 text-xs">時間</Text>
+          <Text className={`text-xs ${t.textMuted}`}>時間</Text>
         </View>
         {days.map((d, i) => {
           const isToday = new Date().toDateString() === d.toDateString();
           return (
             <View key={i} className="flex-1 items-center py-2">
-              <Text className={`text-xs ${isToday ? 'text-blue-600 font-bold' : 'text-neutral-600'}`}>
+              <Text className={`text-xs ${isToday ? 'text-blue-600 font-bold' : t.textMuted}`}>
                 {WEEK_LABELS[d.getDay()]} {d.getMonth() + 1}/{d.getDate()}
               </Text>
             </View>
@@ -145,8 +146,8 @@ export default function WeekTimeline() {
           <View style={{ width: TIME_COL_WIDTH }}>
             {Array.from({ length: 25 }, (_, h) => (
               <View key={h} style={{ height: HOUR_HEIGHT }} className="items-center">
-                <Text className="text-[10px] text-neutral-500">{h.toString().padStart(2, '0')}:00</Text>
-                <View className="h-px bg-neutral-200 w-full mt-1" />
+                <Text className={`text-[10px] ${t.timeText}`}>{h.toString().padStart(2, '0')}:00</Text>
+                <View className={`h-px w-full mt-1 ${t.divider}`} />
               </View>
             ))}
           </View>
@@ -156,7 +157,7 @@ export default function WeekTimeline() {
             {days.map((day, col) => (
               <Pressable
                 key={col}
-                className="flex-1 border-l border-neutral-100"
+                className={`flex-1 border-l ${t.border}`}
                 onPress={(e) => {
                   const y = e.nativeEvent.locationY;
                   const minutes = yToMinutes(y, 30);
@@ -169,10 +170,10 @@ export default function WeekTimeline() {
               >
                 {/* 各時間の罫線 */}
                 {Array.from({ length: 25 }, (_, h) => (
-                  <View key={h} style={{ position: 'absolute', top: h * HOUR_HEIGHT, left: 0, right: 0 }}>
-                    <View className="h-px bg-neutral-200 w-full" />
-                  </View>
-                ))}
+              <View key={h} style={{ position: 'absolute', top: h * HOUR_HEIGHT, left: 0, right: 0 }}>
+                <View className={`h-px w-full ${t.divider}`} />
+              </View>
+            ))}
 
                 {/* イベントバー（重なり時は横方向に等分） */}
                 {(colWidths[col] > 0 ? positionedByDay[col] : positionedByDay[col].map((p) => ({ ...p, col: 0, cols: 1 }))).map((p) => {

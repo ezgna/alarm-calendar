@@ -1,5 +1,6 @@
 {
   "expo": {
+    "owner": "monashop",
     "name": "dotakyan-bancho",
     "slug": "dotakyan-bancho",
     "version": "1.0.0",

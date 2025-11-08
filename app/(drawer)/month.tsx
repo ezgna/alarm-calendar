@@ -6,12 +6,14 @@ import { useCalendarStore } from '../../features/calendar/store';
 import PagedView from '../../components/common/PagedView';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
+import { useThemeTokens } from '../../features/theme/useTheme';
 
 function formatTitle(date: Date) {
   return `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
 }
 
 export default function Month() {
+  const { t } = useThemeTokens();
   const currentIso = useCalendarStore((s) => s.currentDate);
   const page = useCalendarStore((s) => s.page);
   const goToday = useCalendarStore((s) => s.goToday);
@@ -25,7 +27,7 @@ export default function Month() {
   );
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${t.appBg}`}>
       <Header
         title={formatTitle(date)}
         onPrev={() => page(-1)}

@@ -6,6 +6,7 @@ import PagedView from '../../components/common/PagedView';
 import { router } from 'expo-router';
 import WeekTimeline from '../../components/calendar/WeekTimeline';
 import { useFocusEffect } from '@react-navigation/native';
+import { useThemeTokens } from '../../features/theme/useTheme';
 
 function formatWeekTitle(date: Date) {
   const y = date.getFullYear();
@@ -15,6 +16,7 @@ function formatWeekTitle(date: Date) {
 }
 
 export default function Week() {
+  const { t } = useThemeTokens();
   const iso = useCalendarStore((s) => s.currentDate);
   const page = useCalendarStore((s) => s.page);
   const goToday = useCalendarStore((s) => s.goToday);
@@ -28,7 +30,7 @@ export default function Week() {
   );
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${t.appBg}`}>
       <Header
         title={formatWeekTitle(date)}
         onPrev={() => page(-1)}

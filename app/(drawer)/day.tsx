@@ -7,6 +7,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import DayTimeline from '../../components/calendar/DayTimeline';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useThemeTokens } from '../../features/theme/useTheme';
 
 function formatDayTitle(date: Date) {
   const y = date.getFullYear();
@@ -16,6 +17,7 @@ function formatDayTitle(date: Date) {
 }
 
 export default function Day() {
+  const { t } = useThemeTokens();
   // 月カレンダーから来たかどうかの判定（origin=month）
   const params = useLocalSearchParams<{ origin?: string }>();
   const fromMonth = params.origin === 'month';
@@ -62,7 +64,7 @@ export default function Day() {
   }, [navigation, fromMonth]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${t.appBg}`}>
       <Header
         title={formatDayTitle(date)}
         onPrev={() => page(-1)}
