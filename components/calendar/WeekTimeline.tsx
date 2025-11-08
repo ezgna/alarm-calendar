@@ -1,9 +1,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, Text, View, Pressable, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from 'react-native';
-import { getWeekDates, formatLocalDay } from '../../lib/date';
+import { getWeekDates, formatLocalDay, startOfDay, addDays } from '../../lib/date';
 import { useCalendarStore } from '../../features/calendar/store';
 import { useEventStore } from '../../features/events/store';
-import EventChip from '../common/EventChip';
+import EventBar from '../common/EventBar';
 import { router } from 'expo-router';
 import type { EventItem } from '../../features/events/store';
 
@@ -11,7 +11,7 @@ import type { EventItem } from '../../features/events/store';
 const TIME_COL_WIDTH = 48; // 左の時刻欄の幅
 const HOUR_HEIGHT = 56; // 1時間あたりの高さ(px)
 const CONTENT_HEIGHT = HOUR_HEIGHT * 24; // 一日の全高
-const CHIP_HEIGHT_PX = 24; // 重なり検出用の想定高さ
+const MIN_BAR_PX = 24; // 最小バー高さ
 const INNER_MARGIN_PX = 4; // 各カラム内左右余白
 const COLUMN_GAP_PX = 4; // 列間
 
@@ -49,40 +49,68 @@ export default function WeekTimeline() {
   const setWidthAt = (col: number, w: number) =>
     setColWidths((prev) => (prev[col] === w ? prev : prev.map((v, i) => (i === col ? w : v))));
 
-  // 重なりイベントを等分配置するためのレイアウト計算
-  type Positioned = { ev: EventItem; top: number; col: number; cols: number };
+  // 重なりイベントを等分配置するためのレイアウト計算（各日ごと、区間対応）
+  type Positioned = { ev: EventItem; top: number; height: number; col: number; cols: number };
   const positionedByDay: Positioned[][] = useMemo(() => {
-    return eventsByDay.map((evts) => {
+    return days.map((day, dayIndex) => {
+      const evts = eventsByDay[dayIndex] || [];
+      const dayStart = startOfDay(day);
+      const dayEnd = addDays(dayStart, 1);
       const mapped = evts
         .map((ev) => {
-          const dt = new Date(ev.startAt);
-          const minutes = dt.getHours() * 60 + dt.getMinutes();
-          const top = (minutes / 60) * HOUR_HEIGHT;
-          return { ev, top };
+          const ls = new Date(ev.startAt);
+          const le = new Date(ev.endAt);
+          const s = Math.max(0, Math.floor((ls.getTime() - dayStart.getTime()) / 60000));
+          const e = Math.min(24 * 60, Math.ceil((le.getTime() - dayStart.getTime()) / 60000));
+          const startMin = Math.max(0, Math.min(24 * 60, s));
+          const endMin = Math.max(startMin + 1, Math.min(24 * 60, e));
+          return { ev, startMin, endMin };
         })
-        .sort((a, b) => a.top - b.top);
+        .filter((x) => x.endMin > x.startMin)
+        .sort((a, b) => (a.startMin - b.startMin) || (a.endMin - b.endMin));
 
-      const out: Positioned[] = [];
-      let cluster: { items: { ev: EventItem; top: number }[]; maxBottom: number } | null = null;
-      for (const it of mapped) {
-        if (!cluster || it.top >= cluster.maxBottom) {
-          if (cluster) {
-            const n = cluster.items.length;
-            cluster.items.forEach((x, i) => out.push({ ev: x.ev, top: x.top, col: i, cols: n }));
-          }
-          cluster = { items: [it], maxBottom: it.top + CHIP_HEIGHT_PX };
-        } else {
-          cluster.items.push(it);
-          cluster.maxBottom = Math.max(cluster.maxBottom, it.top + CHIP_HEIGHT_PX);
+      type Active = { endMin: number; col: number };
+      let actives: Active[] = [];
+      let usedCols: Set<number> = new Set();
+      let clusterItems: { idx: number; col: number }[] = [];
+      let clusterMaxCols = 0;
+      const assigned: { col: number; cols: number }[] = new Array(mapped.length) as any;
+      const finalizeCluster = () => {
+        for (const it of clusterItems) {
+          assigned[it.idx] = { col: it.col, cols: Math.max(clusterMaxCols, usedCols.size) };
         }
-      }
-      if (cluster) {
-        const n = cluster.items.length;
-        cluster.items.forEach((x, i) => out.push({ ev: x.ev, top: x.top, col: i, cols: n }));
-      }
+        clusterItems = [];
+        clusterMaxCols = 0;
+      };
+
+      mapped.forEach((it, idx) => {
+        actives = actives.filter((a) => {
+          if (a.endMin <= it.startMin) {
+            usedCols.delete(a.col);
+            return false;
+          }
+          return true;
+        });
+        if (actives.length === 0 && clusterItems.length > 0) {
+          finalizeCluster();
+        }
+        let col = 0;
+        while (usedCols.has(col)) col++;
+        usedCols.add(col);
+        actives.push({ endMin: it.endMin, col });
+        clusterItems.push({ idx, col });
+        clusterMaxCols = Math.max(clusterMaxCols, col + 1);
+      });
+      finalizeCluster();
+
+      const out: Positioned[] = mapped.map((it, i) => {
+        const top = (it.startMin / 60) * HOUR_HEIGHT;
+        const height = Math.max(MIN_BAR_PX, ((it.endMin - it.startMin) / 60) * HOUR_HEIGHT);
+        return { ev: it.ev, top, height, col: assigned[i].col, cols: assigned[i].cols };
+      });
       return out;
     });
-  }, [eventsByDay]);
+  }, [eventsByDay, days]);
 
   return (
     <View className="flex-1 bg-white">
@@ -146,27 +174,17 @@ export default function WeekTimeline() {
                   </View>
                 ))}
 
-                {/* イベントチップ（重なり時は横方向に等分） */}
-                {(colWidths[col] > 0 ? positionedByDay[col] : positionedByDay[col].map((p) => ({ ...p, col: 0, cols: 1 }))).map(
-                  (p) => {
-                    const top = p.top + 2;
-                    if (colWidths[col] > 0) {
-                      const inner = Math.max(0, colWidths[col] - INNER_MARGIN_PX * 2);
-                      const colW = p.cols > 0 ? (inner - COLUMN_GAP_PX * (p.cols - 1)) / p.cols : inner;
-                      const left = INNER_MARGIN_PX + p.col * (colW + COLUMN_GAP_PX);
-                      return (
-                        <View key={p.ev.id} style={{ position: 'absolute', top, left, width: colW }}>
-                          <EventChip
-                            title={p.ev.title}
-                            colorId={p.ev.colorId}
-                            onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: p.ev.id } })}
-                          />
-                        </View>
-                      );
-                    }
+                {/* イベントバー（重なり時は横方向に等分） */}
+                {(colWidths[col] > 0 ? positionedByDay[col] : positionedByDay[col].map((p) => ({ ...p, col: 0, cols: 1 }))).map((p) => {
+                  const top = p.top + 2;
+                  const height = p.height;
+                  if (colWidths[col] > 0) {
+                    const inner = Math.max(0, colWidths[col] - INNER_MARGIN_PX * 2);
+                    const colW = p.cols > 0 ? (inner - COLUMN_GAP_PX * (p.cols - 1)) / p.cols : inner;
+                    const left = INNER_MARGIN_PX + p.col * (colW + COLUMN_GAP_PX);
                     return (
-                      <View key={p.ev.id} style={{ position: 'absolute', top, left: INNER_MARGIN_PX, right: INNER_MARGIN_PX }}>
-                        <EventChip
+                      <View key={p.ev.id} style={{ position: 'absolute', top, left, width: colW, height }}>
+                        <EventBar
                           title={p.ev.title}
                           colorId={p.ev.colorId}
                           onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: p.ev.id } })}
@@ -174,7 +192,16 @@ export default function WeekTimeline() {
                       </View>
                     );
                   }
-                )}
+                  return (
+                    <View key={p.ev.id} style={{ position: 'absolute', top, left: INNER_MARGIN_PX, right: INNER_MARGIN_PX, height }}>
+                      <EventBar
+                        title={p.ev.title}
+                        colorId={p.ev.colorId}
+                        onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: p.ev.id } })}
+                      />
+                    </View>
+                  );
+                })}
               </Pressable>
             ))}
           </View>

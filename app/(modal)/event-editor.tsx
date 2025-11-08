@@ -5,7 +5,7 @@ import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } 
 import ColorPicker from '../../components/common/ColorPicker';
 import { DEFAULT_COLOR_ID } from '../../components/common/colorVariants';
 import { useEventStore } from '../../features/events/store';
-import { fromUtcIsoToLocalDate, toUtcIsoString } from '../../lib/date';
+import { addMinutes, fromUtcIsoToLocalDate, toUtcIsoString } from '../../lib/date';
 
 export default function EventEditor() {
   const params = useLocalSearchParams<{ id?: string; date?: string }>();
@@ -22,26 +22,35 @@ export default function EventEditor() {
   const [title, setTitle] = useState(existing?.title ?? '');
   const [colorId, setColorId] = useState(existing?.colorId ?? DEFAULT_COLOR_ID);
   const [memo, setMemo] = useState(existing?.memo ?? '');
-  const [date, setDate] = useState<Date>(() => {
+  const [start, setStart] = useState<Date>(() => {
     if (existing) return fromUtcIsoToLocalDate(existing.startAt);
     if (initialDateStr) return new Date(initialDateStr);
     const d = new Date();
     d.setMinutes(0, 0, 0);
     return d;
   });
-  const [showPicker, setShowPicker] = useState(Platform.OS === 'ios');
+  const [end, setEnd] = useState<Date>(() => {
+    if (existing?.endAt) return fromUtcIsoToLocalDate(existing.endAt);
+    return addMinutes(existing ? fromUtcIsoToLocalDate(existing.startAt) : (initialDateStr ? new Date(initialDateStr) : new Date()), 30);
+  });
+  const [showStartPicker, setShowStartPicker] = useState(Platform.OS === 'ios');
+  const [showEndPicker, setShowEndPicker] = useState(Platform.OS === 'ios');
 
   useEffect(() => {
-    if (Platform.OS === 'android') setShowPicker(false);
+    if (Platform.OS === 'android') {
+      setShowStartPicker(false);
+      setShowEndPicker(false);
+    }
   }, []);
 
   const onSave = () => {
     if (!title.trim()) return; // タイトル必須
-    const utcIso = toUtcIsoString(date);
+    const startIso = toUtcIsoString(start);
+    const endIso = toUtcIsoString(end <= start ? addMinutes(start, 30) : end);
     if (existing) {
-      update(existing.id, { title: title.trim(), colorId, memo, startAt: utcIso });
+      update(existing.id, { title: title.trim(), colorId, memo, startAt: startIso, endAt: endIso });
     } else {
-      add({ title: title.trim(), colorId, memo, startAt: utcIso });
+      add({ title: title.trim(), colorId, memo, startAt: startIso, endAt: endIso });
     }
     router.back();
   };
@@ -69,7 +78,7 @@ export default function EventEditor() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white" contentContainerStyle={{ padding: 16, gap: 16 }}>
+    <ScrollView className="flex-1 bg-white pt-12 p-4" contentContainerStyle={{ gap: 16 }}>
       <View className="gap-2">
         <Text className="text-sm text-neutral-600">タイトル（必須）</Text>
         <TextInput
@@ -86,19 +95,49 @@ export default function EventEditor() {
           <View className="flex-row gap-2">
             <TouchableOpacity
               className="px-3 py-2 rounded-md bg-neutral-100"
-              onPress={() => setShowPicker(true)}
+              onPress={() => setShowStartPicker(true)}
             >
-              <Text>{date.toLocaleString()}</Text>
+              <Text>{start.toLocaleString()}</Text>
             </TouchableOpacity>
           </View>
         ) : null}
-        {(Platform.OS === 'ios' || showPicker) && (
+        {(Platform.OS === 'ios' || showStartPicker) && (
           <DateTimePicker
-            value={date}
+            value={start}
             mode="datetime"
             onChange={(_, d) => {
-              if (d) setDate(d);
-              if (Platform.OS === 'android') setShowPicker(false);
+              if (d) {
+                setStart(d);
+                if (end <= d) setEnd(addMinutes(d, 30));
+              }
+              if (Platform.OS === 'android') setShowStartPicker(false);
+            }}
+          />
+        )}
+      </View>
+
+      <View className="gap-2">
+        <Text className="text-sm text-neutral-600">終了日時</Text>
+        {Platform.OS === 'android' ? (
+          <View className="flex-row gap-2">
+            <TouchableOpacity
+              className="px-3 py-2 rounded-md bg-neutral-100"
+              onPress={() => setShowEndPicker(true)}
+            >
+              <Text>{end.toLocaleString()}</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+        {(Platform.OS === 'ios' || showEndPicker) && (
+          <DateTimePicker
+            value={end}
+            mode="datetime"
+            onChange={(_, d) => {
+              if (d) {
+                if (d <= start) setEnd(addMinutes(start, 30));
+                else setEnd(d);
+              }
+              if (Platform.OS === 'android') setShowEndPicker(false);
             }}
           />
         )}
@@ -120,7 +159,7 @@ export default function EventEditor() {
         />
       </View>
 
-      <View className="flex-row gap-8 mt-4">
+      <View className="flex-row gap-4 mt-4">
         {existing ? (
           <TouchableOpacity className="px-4 py-2 rounded-md bg-red-600" onPress={confirmDelete}>
             <Text className="text-white font-semibold">削除</Text>

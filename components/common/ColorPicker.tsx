@@ -1,5 +1,6 @@
 import { View, TouchableOpacity, Text } from 'react-native';
 import { COLOR_IDS, COLOR_LABELS, DEFAULT_COLOR_ID, getColorHex } from './colorVariants';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
   value: string;
@@ -20,13 +21,20 @@ export default function ColorPicker({ value, onChange }: Props) {
             style={{
               paddingHorizontal: 10,
               paddingVertical: 6,
-              borderRadius: 6,
-              borderWidth: 2,
-              borderColor: isActive ? '#a3a3a3' : hex.border,
+              borderRadius: 8,
               backgroundColor: hex.bg,
+              transform: [{ scale: isActive ? 1.05 : 1 }],
+              shadowColor: isActive ? '#000' : 'transparent',
+              shadowOpacity: isActive ? 0.2 : 0,
+              shadowRadius: isActive ? 4 : 0,
+              shadowOffset: isActive ? { width: 0, height: 2 } : { width: 0, height: 0 },
+              elevation: isActive ? 3 : 0,
             }}
           >
-            <Text style={{ color: hex.text, fontWeight: '500' }}>{label}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              {isActive ? <Ionicons name="checkmark" size={14} color={hex.text} /> : null}
+              <Text style={{ color: hex.text, fontWeight: isActive ? '700' : '500', marginLeft: isActive ? 6 : 0 }}>{label}</Text>
+            </View>
           </TouchableOpacity>
         );
       })}

@@ -38,6 +38,12 @@ export function addMonths(date: Date, n: number): Date {
   return d;
 }
 
+export function addMinutes(date: Date, n: number): Date {
+  const d = new Date(date);
+  d.setMinutes(d.getMinutes() + n);
+  return d;
+}
+
 export function getMonthMatrix(date: Date, weekStartsOn: 0 | 1 = 0): Date[] {
   // 6行×7列=42セル
   const firstOfMonth = startOfMonth(date);

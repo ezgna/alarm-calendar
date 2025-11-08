@@ -4,7 +4,6 @@
     "slug": "alarm-calendar",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
     "scheme": "alarmcalendar",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -35,7 +34,7 @@
         "expo-splash-screen",
         {
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "imageWidth": 100,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
           "dark": {

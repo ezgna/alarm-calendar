@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { mmkvStorage } from '../storage/mmkv';
-import { currentTimeZone, formatLocalDay, fromUtcIsoToLocalDate } from '../../lib/date';
+import { currentTimeZone, formatLocalDay, fromUtcIsoToLocalDate, startOfDay, addDays, addMinutes } from '../../lib/date';
 
 export type EventItem = {
   id: string;
   title: string;
-  startAt: string; // UTC ISO
+  startAt: string; // UTC ISO（開始）
+  endAt: string; // UTC ISO（終了）
   colorId: string;
   memo?: string;
 };
@@ -42,7 +43,7 @@ export const useEventStore = create<State & Actions>()(
   persist(
     (set, get) => ({
       eventsById: {},
-      schemaVersion: 1,
+      schemaVersion: 2,
       indexByLocalDay: {},
       hydrated: false,
       lastIndexedTz: undefined,
@@ -52,7 +53,11 @@ export const useEventStore = create<State & Actions>()(
       add: (input) => {
         const id = genId();
         set((s) => {
-          const eventsById = { ...s.eventsById, [id]: { id, ...input } };
+          let { startAt, endAt } = input;
+          if (new Date(endAt).getTime() <= new Date(startAt).getTime()) {
+            endAt = addMinutes(new Date(startAt), 30).toISOString();
+          }
+          const eventsById = { ...s.eventsById, [id]: { id, ...input, startAt, endAt } };
           return { eventsById };
         });
         // 差分インデックス更新
@@ -65,7 +70,11 @@ export const useEventStore = create<State & Actions>()(
         set((s) => {
           const cur = s.eventsById[id];
           if (!cur) return {} as State;
-          const eventsById = { ...s.eventsById, [id]: { ...cur, ...patch, id } };
+          let next: EventItem = { ...cur, ...patch, id } as EventItem;
+          if (new Date(next.endAt).getTime() <= new Date(next.startAt).getTime()) {
+            next = { ...next, endAt: addMinutes(new Date(next.startAt), 30).toISOString() };
+          }
+          const eventsById = { ...s.eventsById, [id]: next };
           return { eventsById };
         });
         const tz = get().lastIndexedTz ?? currentTimeZone();
@@ -86,11 +95,15 @@ export const useEventStore = create<State & Actions>()(
         const map: Record<string, string[]> = {};
         for (const id of Object.keys(eventsById)) {
           const e = eventsById[id];
-          const d = fromUtcIsoToLocalDate(e.startAt);
-          const key = formatLocalDay(d);
-          (map[key] ??= []).push(id);
+          const ls = fromUtcIsoToLocalDate(e.startAt);
+          const le = fromUtcIsoToLocalDate(e.endAt);
+          let cur = startOfDay(ls);
+          while (cur < le) {
+            const key = formatLocalDay(cur);
+            (map[key] ??= []).push(id);
+            cur = addDays(cur, 1);
+          }
         }
-        // 同日のイベントは開始時刻でソート（UTC→ローカル想定）
         for (const key of Object.keys(map)) {
           map[key].sort((a, b) => {
             const ea = eventsById[a];
@@ -113,13 +126,15 @@ export const useEventStore = create<State & Actions>()(
         const s = start.getTime();
         const e = end.getTime();
         return Object.values(eventsById).filter((it) => {
-          const t = new Date(it.startAt).getTime();
-          return t >= s && t < e;
+          const st = new Date(it.startAt).getTime();
+          const en = new Date(it.endAt).getTime();
+          return !(en <= s || st >= e);
         });
       },
     }),
     {
-      name: 'event-store-v1',
+      // 完全やり直し前提。キーも更新して古いデータと分離
+      name: 'event-store-v2',
       storage: createJSONStorage(() => mmkvStorage),
       partialize: (s) => ({ eventsById: s.eventsById, schemaVersion: s.schemaVersion }),
       onRehydrateStorage: () => (state) => {
@@ -134,4 +149,3 @@ export const useEventStore = create<State & Actions>()(
     }
   )
 );
-
