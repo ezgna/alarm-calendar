@@ -1,5 +1,5 @@
-import { Text, TouchableOpacity, View } from 'react-native';
-import { COLOR_BY_ID, DEFAULT_COLOR_ID } from '../../features/events/colors';
+import { Text, TouchableOpacity } from 'react-native';
+import { DEFAULT_COLOR_ID, getColorClasses } from './colorVariants';
 
 type Props = {
   title: string;
@@ -9,13 +9,12 @@ type Props = {
 
 // 週/日タイムラインで使う小さなチップ
 export default function EventChip({ title, colorId = DEFAULT_COLOR_ID, onPress }: Props) {
-  const c = COLOR_BY_ID[colorId] ?? COLOR_BY_ID[DEFAULT_COLOR_ID];
+  const c = getColorClasses(colorId);
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8} className={`px-2 py-1 rounded-md ${c.classes.bg} ${c.classes.text}`}>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} className={`px-2 py-1 rounded-md ${c.bg} ${c.text}`}>
       <Text className="text-xs font-semibold" numberOfLines={1}>
         {title}
       </Text>
     </TouchableOpacity>
   );
 }
-

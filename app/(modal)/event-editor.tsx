@@ -1,8 +1,8 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Platform, ScrollView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DEFAULT_COLOR_ID } from '../../features/events/colors';
+import { DEFAULT_COLOR_ID } from '../../components/common/colorVariants';
 import ColorPicker from '../../components/common/ColorPicker';
 import { useEventStore } from '../../features/events/store';
 import { toUtcIsoString, fromUtcIsoToLocalDate } from '../../lib/date';
@@ -46,11 +46,26 @@ export default function EventEditor() {
     router.back();
   };
 
-  const onDelete = () => {
-    if (existing) {
-      remove(existing.id);
-      router.back();
-    }
+  const confirmDelete = () => {
+    if (!existing) return;
+    Alert.alert(
+      '削除の確認',
+      'この予定を削除します。元に戻せません。',
+      [
+        { text: 'キャンセル', style: 'cancel' },
+        {
+          text: '削除',
+          style: 'destructive',
+          onPress: () => {
+            try {
+              remove(existing.id);
+            } finally {
+              router.back();
+            }
+          },
+        },
+      ]
+    );
   };
 
   return (
@@ -107,7 +122,7 @@ export default function EventEditor() {
 
       <View className="flex-row gap-8 mt-4">
         {existing ? (
-          <TouchableOpacity className="px-4 py-2 rounded-md bg-red-600" onPress={onDelete}>
+          <TouchableOpacity className="px-4 py-2 rounded-md bg-red-600" onPress={confirmDelete}>
             <Text className="text-white font-semibold">削除</Text>
           </TouchableOpacity>
         ) : null}

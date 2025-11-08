@@ -24,17 +24,21 @@ export default function WeekTimeline() {
   const iso = useCalendarStore((s) => s.currentDate);
   const date = useMemo(() => new Date(iso), [iso]);
   const days = useMemo(() => getWeekDates(date, 0), [date]);
-  const getByDay = useEventStore((s) => s.getEventsByLocalDay);
+  const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
+  const eventsById = useEventStore((s) => s.eventsById);
 
   const now = new Date();
   const isCurrentWeek = now >= days[0] && now < new Date(days[0].getFullYear(), days[0].getMonth(), days[0].getDate() + 7);
   const nowY = ((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR_HEIGHT;
 
   // 各日のイベント
-  const eventsByDay = useMemo(
-    () => days.map((d) => getByDay(d)),
-    [days, getByDay]
-  );
+  const eventsByDay = useMemo(() => {
+    return days.map((d) => {
+      const key = formatLocalDay(d);
+      const ids = indexByLocalDay[key] || [];
+      return ids.map((id) => eventsById[id]).filter(Boolean);
+    });
+  }, [days, indexByLocalDay, eventsById]);
 
   return (
     <View className="flex-1 bg-white">
@@ -116,4 +120,3 @@ export default function WeekTimeline() {
     </View>
   );
 }
-

@@ -1,5 +1,5 @@
 import { View, TouchableOpacity, Text } from 'react-native';
-import { COLORS, COLOR_BY_ID } from '../../features/events/colors';
+import { COLOR_IDS, COLOR_LABELS, DEFAULT_COLOR_ID, getColorHex } from './colorVariants';
 
 type Props = {
   value: string;
@@ -9,18 +9,27 @@ type Props = {
 export default function ColorPicker({ value, onChange }: Props) {
   return (
     <View className="flex-row flex-wrap gap-2">
-      {COLORS.map((c) => (
-        <TouchableOpacity
-          key={c.id}
-          className={`px-3 py-2 rounded-md border ${c.classes.bg} ${c.classes.text} ${c.classes.border ?? ''} ${
-            value === c.id ? 'ring-2 ring-offset-2 ring-neutral-400' : ''
-          }`}
-          onPress={() => onChange(c.id)}
-        >
-          <Text className="font-medium">{c.label}</Text>
-        </TouchableOpacity>
-      ))}
+      {COLOR_IDS.map((id) => {
+        const hex = getColorHex(id);
+        const label = COLOR_LABELS[id];
+        const isActive = value === id || (!value && id === DEFAULT_COLOR_ID);
+        return (
+          <TouchableOpacity
+            key={id}
+            onPress={() => onChange(id)}
+            style={{
+              paddingHorizontal: 10,
+              paddingVertical: 6,
+              borderRadius: 6,
+              borderWidth: 2,
+              borderColor: isActive ? '#a3a3a3' : hex.border,
+              backgroundColor: hex.bg,
+            }}
+          >
+            <Text style={{ color: hex.text, fontWeight: '500' }}>{label}</Text>
+          </TouchableOpacity>
+        );
+      })}
     </View>
   );
 }
-

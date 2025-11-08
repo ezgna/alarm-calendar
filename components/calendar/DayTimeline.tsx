@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { ScrollView, Text, View, Pressable } from "react-native";
 import { useCalendarStore } from "../../features/calendar/store";
 import { useEventStore } from "../../features/events/store";
+import { formatLocalDay } from "../../lib/date";
 import EventChip from "../common/EventChip";
 import { router } from "expo-router";
 
@@ -18,9 +19,13 @@ function yToMinutes(y: number, step = 30) {
 export default function DayTimeline() {
   const iso = useCalendarStore((s) => s.currentDate);
   const date = useMemo(() => new Date(iso), [iso]);
-  const getByDay = useEventStore((s) => s.getEventsByLocalDay);
-
-  const events = useMemo(() => getByDay(date), [date, getByDay]);
+  const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
+  const eventsById = useEventStore((s) => s.eventsById);
+  const events = useMemo(() => {
+    const key = formatLocalDay(date);
+    const ids = indexByLocalDay[key] || [];
+    return ids.map((id) => eventsById[id]).filter(Boolean);
+  }, [date, indexByLocalDay, eventsById]);
   const now = new Date();
   const isToday = now.toDateString() === date.toDateString();
   const nowY = ((now.getHours() * 60 + now.getMinutes()) / 60) * HOUR_HEIGHT;

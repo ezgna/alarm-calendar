@@ -27,9 +27,9 @@ export default function DrawerLayout() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen name="index" options={{ drawerItemStyle: { display: "none" } }} />
-      <Drawer.Screen name="month" options={{ drawerLabel: "月" }} />
-      <Drawer.Screen name="week" options={{ drawerLabel: "週" }} />
-      <Drawer.Screen name="day" options={{ drawerLabel: "日" }} />
+      <Drawer.Screen name="month" options={{ drawerLabel: "月カレンダー", title: "月カレンダー" }} />
+      <Drawer.Screen name="week" options={{ drawerLabel: "週間ビュー", title: "週間ビュー" }} />
+      <Drawer.Screen name="day" options={{ drawerLabel: "今日", title: "今日" }} />
     </Drawer>
   );
 }

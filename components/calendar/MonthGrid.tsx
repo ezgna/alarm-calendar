@@ -4,7 +4,7 @@ import { getMonthMatrix, formatLocalDay } from '../../lib/date';
 import { useCalendarStore } from '../../features/calendar/store';
 import { useEventStore } from '../../features/events/store';
 import { router } from 'expo-router';
-import { COLOR_BY_ID, DEFAULT_COLOR_ID } from '../../features/events/colors';
+import { getColorClasses, DEFAULT_COLOR_ID } from '../common/colorVariants';
 
 function formatMonthLabel(date: Date) {
   const y = date.getFullYear();
@@ -19,14 +19,24 @@ export default function MonthGrid() {
   const date = useMemo(() => new Date(currentIso), [currentIso]);
   const month = date.getMonth();
   const matrix = useMemo(() => getMonthMatrix(date, 0), [date]);
-  const getByDay = useEventStore((s) => s.getEventsByLocalDay);
+  const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
+  const eventsById = useEventStore((s) => s.eventsById);
 
-  const data = useMemo(() => matrix.map((d) => ({
-    date: d,
-    isCurrentMonth: d.getMonth() === month,
-    key: formatLocalDay(d),
-    events: getByDay(d),
-  })), [matrix, month, getByDay]);
+  const data = useMemo(
+    () =>
+      matrix.map((d) => {
+        const key = formatLocalDay(d);
+        const ids = indexByLocalDay[key] || [];
+        const events = ids.map((id) => eventsById[id]).filter(Boolean);
+        return {
+          date: d,
+          isCurrentMonth: d.getMonth() === month,
+          key,
+          events,
+        };
+      }),
+    [matrix, month, indexByLocalDay, eventsById]
+  );
 
   return (
     <View className="flex-1 bg-white">
@@ -53,7 +63,7 @@ export default function MonthGrid() {
                 // 日にちタップでその日に遷移
                 useCalendarStore.getState().setDate(new Date(item.date));
                 useCalendarStore.getState().setView('day');
-                router.navigate('/(drawer)/day');
+                router.push('/(drawer)/day');
               }}
               onLongPress={() => {
                 const d = new Date(item.date);
@@ -67,10 +77,10 @@ export default function MonthGrid() {
                 </Text>
               <View className="mt-1 gap-0.5">
                 {item.events.slice(0, 3).map((e) => {
-                  const c = COLOR_BY_ID[e.colorId] ?? COLOR_BY_ID[DEFAULT_COLOR_ID];
+                  const c = getColorClasses(e.colorId ?? DEFAULT_COLOR_ID);
                   return (
                     <View key={e.id} className="flex-row items-center gap-1">
-                      <View className={`w-1.5 h-1.5 rounded-full ${c.classes.dot}`} />
+                      <View className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                       <Text className="text-[10px] text-neutral-700" numberOfLines={1}>
                         {e.title}
                       </Text>

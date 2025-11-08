@@ -67,11 +67,12 @@ export function currentTimeZone(): string {
 }
 
 export function toUtcIsoString(date: Date): string {
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString();
+  // Date は内部的にUTCエポックを保持しており、toISOString() はそのUTC表現を返す。
+  // 追加のタイムゾーン補正は不要（行うと二重補正になりズレる）。
+  return date.toISOString();
 }
 
 export function fromUtcIsoToLocalDate(utcIso: string): Date {
   // ISO はUTCと仮定。表示用途にローカルDateへ（Date型は内部UTCだがgetHours系はローカルで出る）
   return new Date(utcIso);
 }
-
