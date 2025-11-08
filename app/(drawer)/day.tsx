@@ -1,11 +1,11 @@
 import { View, TouchableOpacity } from 'react-native';
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import Header from '../../components/common/Header';
 import { useCalendarStore } from '../../features/calendar/store';
 import PagedView from '../../components/common/PagedView';
 import { router, useLocalSearchParams } from 'expo-router';
 import DayTimeline from '../../components/calendar/DayTimeline';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 
 function formatDayTitle(date: Date) {
@@ -27,9 +27,11 @@ export default function Day() {
   const setView = useCalendarStore((s) => s.setView);
   const date = new Date(iso);
 
-  useEffect(() => {
-    setView('day');
-  }, [setView]);
+  useFocusEffect(
+    useCallback(() => {
+      setView('day');
+    }, [setView])
+  );
 
   // Drawer の既定ヘッダー左を、月から来た場合のみ「月へ戻る」ボタンに差し替える
   useEffect(() => {

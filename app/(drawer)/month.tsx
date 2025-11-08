@@ -1,10 +1,11 @@
 import { View } from 'react-native';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 import Header from '../../components/common/Header';
 import MonthGrid from '../../components/calendar/MonthGrid';
 import { useCalendarStore } from '../../features/calendar/store';
 import PagedView from '../../components/common/PagedView';
 import { router } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 
 function formatTitle(date: Date) {
   return `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
@@ -17,9 +18,11 @@ export default function Month() {
   const setView = useCalendarStore((s) => s.setView);
   const date = new Date(currentIso);
 
-  useEffect(() => {
-    setView('month');
-  }, [setView]);
+  useFocusEffect(
+    useCallback(() => {
+      setView('month');
+    }, [setView])
+  );
 
   return (
     <View className="flex-1 bg-white">

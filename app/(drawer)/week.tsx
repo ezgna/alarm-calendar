@@ -1,10 +1,11 @@
 import { View } from 'react-native';
-import { useEffect } from 'react';
+import { useCallback } from 'react';
 import Header from '../../components/common/Header';
 import { useCalendarStore } from '../../features/calendar/store';
 import PagedView from '../../components/common/PagedView';
 import { router } from 'expo-router';
 import WeekTimeline from '../../components/calendar/WeekTimeline';
+import { useFocusEffect } from '@react-navigation/native';
 
 function formatWeekTitle(date: Date) {
   const y = date.getFullYear();
@@ -20,9 +21,11 @@ export default function Week() {
   const setView = useCalendarStore((s) => s.setView);
   const date = new Date(iso);
 
-  useEffect(() => {
-    setView('week');
-  }, [setView]);
+  useFocusEffect(
+    useCallback(() => {
+      setView('week');
+    }, [setView])
+  );
 
   return (
     <View className="flex-1 bg-white">

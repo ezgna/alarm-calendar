@@ -1,15 +1,19 @@
-import React, { useMemo, useRef } from 'react';
-import { ScrollView, Text, View, Pressable, NativeSyntheticEvent, NativeScrollEvent } from 'react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { ScrollView, Text, View, Pressable, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent } from 'react-native';
 import { getWeekDates, formatLocalDay } from '../../lib/date';
 import { useCalendarStore } from '../../features/calendar/store';
 import { useEventStore } from '../../features/events/store';
 import EventChip from '../common/EventChip';
 import { router } from 'expo-router';
+import type { EventItem } from '../../features/events/store';
 
 // 見やすさのための基準値
 const TIME_COL_WIDTH = 48; // 左の時刻欄の幅
 const HOUR_HEIGHT = 56; // 1時間あたりの高さ(px)
 const CONTENT_HEIGHT = HOUR_HEIGHT * 24; // 一日の全高
+const CHIP_HEIGHT_PX = 24; // 重なり検出用の想定高さ
+const INNER_MARGIN_PX = 4; // 各カラム内左右余白
+const COLUMN_GAP_PX = 4; // 列間
 
 const WEEK_LABELS = ['日','月','火','水','木','金','土'];
 
@@ -39,6 +43,46 @@ export default function WeekTimeline() {
       return ids.map((id) => eventsById[id]).filter(Boolean);
     });
   }, [days, indexByLocalDay, eventsById]);
+
+  // 各日のカラム幅を保持（重なり時の横幅計算に使用）
+  const [colWidths, setColWidths] = useState<number[]>(Array(7).fill(0));
+  const setWidthAt = (col: number, w: number) =>
+    setColWidths((prev) => (prev[col] === w ? prev : prev.map((v, i) => (i === col ? w : v))));
+
+  // 重なりイベントを等分配置するためのレイアウト計算
+  type Positioned = { ev: EventItem; top: number; col: number; cols: number };
+  const positionedByDay: Positioned[][] = useMemo(() => {
+    return eventsByDay.map((evts) => {
+      const mapped = evts
+        .map((ev) => {
+          const dt = new Date(ev.startAt);
+          const minutes = dt.getHours() * 60 + dt.getMinutes();
+          const top = (minutes / 60) * HOUR_HEIGHT;
+          return { ev, top };
+        })
+        .sort((a, b) => a.top - b.top);
+
+      const out: Positioned[] = [];
+      let cluster: { items: { ev: EventItem; top: number }[]; maxBottom: number } | null = null;
+      for (const it of mapped) {
+        if (!cluster || it.top >= cluster.maxBottom) {
+          if (cluster) {
+            const n = cluster.items.length;
+            cluster.items.forEach((x, i) => out.push({ ev: x.ev, top: x.top, col: i, cols: n }));
+          }
+          cluster = { items: [it], maxBottom: it.top + CHIP_HEIGHT_PX };
+        } else {
+          cluster.items.push(it);
+          cluster.maxBottom = Math.max(cluster.maxBottom, it.top + CHIP_HEIGHT_PX);
+        }
+      }
+      if (cluster) {
+        const n = cluster.items.length;
+        cluster.items.forEach((x, i) => out.push({ ev: x.ev, top: x.top, col: i, cols: n }));
+      }
+      return out;
+    });
+  }, [eventsByDay]);
 
   return (
     <View className="flex-1 bg-white">
@@ -93,6 +137,7 @@ export default function WeekTimeline() {
                   router.push({ pathname: '/(modal)/event-editor', params: { date: d.toISOString() } });
                 }}
                 style={{ height: CONTENT_HEIGHT }}
+                onLayout={(e: LayoutChangeEvent) => setWidthAt(col, e.nativeEvent.layout.width)}
               >
                 {/* 各時間の罫線 */}
                 {Array.from({ length: 25 }, (_, h) => (
@@ -101,17 +146,35 @@ export default function WeekTimeline() {
                   </View>
                 ))}
 
-                {/* イベントチップ（開始時刻のみ） */}
-                {eventsByDay[col].map((ev) => {
-                  const dt = new Date(ev.startAt);
-                  const minutes = dt.getHours() * 60 + dt.getMinutes();
-                  const top = (minutes / 60) * HOUR_HEIGHT + 2;
-                  return (
-                    <View key={ev.id} style={{ position: 'absolute', top, left: 4, right: 4 }}>
-                      <EventChip title={ev.title} colorId={ev.colorId} onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: ev.id } })} />
-                    </View>
-                  );
-                })}
+                {/* イベントチップ（重なり時は横方向に等分） */}
+                {(colWidths[col] > 0 ? positionedByDay[col] : positionedByDay[col].map((p) => ({ ...p, col: 0, cols: 1 }))).map(
+                  (p) => {
+                    const top = p.top + 2;
+                    if (colWidths[col] > 0) {
+                      const inner = Math.max(0, colWidths[col] - INNER_MARGIN_PX * 2);
+                      const colW = p.cols > 0 ? (inner - COLUMN_GAP_PX * (p.cols - 1)) / p.cols : inner;
+                      const left = INNER_MARGIN_PX + p.col * (colW + COLUMN_GAP_PX);
+                      return (
+                        <View key={p.ev.id} style={{ position: 'absolute', top, left, width: colW }}>
+                          <EventChip
+                            title={p.ev.title}
+                            colorId={p.ev.colorId}
+                            onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: p.ev.id } })}
+                          />
+                        </View>
+                      );
+                    }
+                    return (
+                      <View key={p.ev.id} style={{ position: 'absolute', top, left: INNER_MARGIN_PX, right: INNER_MARGIN_PX }}>
+                        <EventChip
+                          title={p.ev.title}
+                          colorId={p.ev.colorId}
+                          onPress={() => router.push({ pathname: '/(modal)/event-editor', params: { id: p.ev.id } })}
+                        />
+                      </View>
+                    );
+                  }
+                )}
               </Pressable>
             ))}
           </View>

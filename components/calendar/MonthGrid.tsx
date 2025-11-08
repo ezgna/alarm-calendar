@@ -15,6 +15,7 @@ export default function MonthGrid() {
   const matrix = useMemo(() => getMonthMatrix(date, 0), [date]);
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
+  const todayKey = formatLocalDay(new Date());
 
   const data = useMemo(
     () =>
@@ -25,11 +26,12 @@ export default function MonthGrid() {
         return {
           date: d,
           isCurrentMonth: d.getMonth() === month,
+          isToday: key === todayKey,
           key,
           events,
         };
       }),
-    [matrix, month, indexByLocalDay, eventsById]
+    [matrix, month, indexByLocalDay, eventsById, todayKey]
   );
 
   return (
@@ -65,7 +67,25 @@ export default function MonthGrid() {
               }}
             >
               <View className="flex-1">
-                <Text className={`text-xs ${item.isCurrentMonth ? "text-neutral-900" : "text-neutral-400"}`}>{item.date.getDate()}</Text>
+                {/* 今日の日付は丸いバッジで強調（ブルー背景＋白文字） */}
+                <View className="items-start">
+                  <View
+                    className={`${item.isToday ? "bg-blue-600" : "bg-transparent"} rounded-full items-center justify-center`}
+                    style={{ width: 24, height: 24 }}
+                  >
+                    <Text
+                      className={`text-xs ${
+                        item.isToday
+                          ? "text-white font-bold"
+                          : item.isCurrentMonth
+                          ? "text-neutral-900"
+                          : "text-neutral-400"
+                      }`}
+                    >
+                      {item.date.getDate()}
+                    </Text>
+                  </View>
+                </View>
                 <View className="mt-1 gap-0.5">
                   {item.events.slice(0, 3).map((e) => {
                     const c = getColorClasses(e.colorId ?? DEFAULT_COLOR_ID);

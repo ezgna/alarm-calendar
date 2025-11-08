@@ -1,5 +1,5 @@
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useCalendarStore } from '../../features/calendar/store';
+import { Ionicons } from '@expo/vector-icons';
+import { Text, TouchableOpacity, View } from 'react-native';
 
 type Props = {
   title: string;
@@ -13,12 +13,12 @@ export default function Header({ title, onPrev, onNext, onToday, onAdd }: Props)
   return (
     <View className="flex-row items-center justify-between px-4 py-3 border-b border-neutral-200 bg-white">
       <View className="flex-row items-center gap-2">
-        <TouchableOpacity onPress={onPrev} accessibilityRole="button">
-          <Text className="text-blue-600 text-lg">‹</Text>
+        <TouchableOpacity onPress={onPrev} accessibilityRole="button" accessibilityLabel="前へ" style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
+          <Ionicons name="chevron-back" size={18} color="#2563eb" />
         </TouchableOpacity>
         <Text className="text-lg font-semibold">{title}</Text>
-        <TouchableOpacity onPress={onNext} accessibilityRole="button">
-          <Text className="text-blue-600 text-lg">›</Text>
+        <TouchableOpacity onPress={onNext} accessibilityRole="button" accessibilityLabel="次へ" style={{ paddingHorizontal: 4, paddingVertical: 2 }}>
+          <Ionicons name="chevron-forward" size={18} color="#2563eb" />
         </TouchableOpacity>
       </View>
       <View className="flex-row items-center gap-3">
@@ -32,4 +32,3 @@ export default function Header({ title, onPrev, onNext, onToday, onAdd }: Props)
     </View>
   );
 }
-
