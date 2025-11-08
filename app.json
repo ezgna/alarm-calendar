@@ -1,16 +1,19 @@
 {
   "expo": {
-    "name": "alarm-calendar",
-    "slug": "alarm-calendar",
+    "name": "dotakyan-bancho",
+    "slug": "dotakyan-bancho",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "alarmcalendar",
+    "scheme": "dotakyanbancho",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "locales": {
+      "ja": "./locales/ja.json"
+    },
     "ios": {
       "icon": "assets/icons/app.icon",
       "supportsTablet": true,
-      "bundleIdentifier": "com.ezgna.alarmcalendar"
+      "bundleIdentifier": "com.monashop.dotakyanbancho"
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +24,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.ezgna.alarmcalendar"
+      "package": "com.ezgna.dotakyanbancho"
     },
     "web": {
       "output": "static",

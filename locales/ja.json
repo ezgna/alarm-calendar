@@ -1,0 +1,9 @@
+{
+  "ios": {
+    "CFBundleDisplayName": "アラームカレンダー",
+    "CFBundleName": "アラームカレンダー"
+  },
+  "android": {
+    "app_name": "アラームカレンダー"
+  }
+}
