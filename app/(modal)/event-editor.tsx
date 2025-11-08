@@ -1,11 +1,11 @@
-import { useLocalSearchParams, router } from 'expo-router';
-import { useEffect, useMemo, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Platform, ScrollView, Alert } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { DEFAULT_COLOR_ID } from '../../components/common/colorVariants';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import ColorPicker from '../../components/common/ColorPicker';
+import { DEFAULT_COLOR_ID } from '../../components/common/colorVariants';
 import { useEventStore } from '../../features/events/store';
-import { toUtcIsoString, fromUtcIsoToLocalDate } from '../../lib/date';
+import { fromUtcIsoToLocalDate, toUtcIsoString } from '../../lib/date';
 
 export default function EventEditor() {
   const params = useLocalSearchParams<{ id?: string; date?: string }>();

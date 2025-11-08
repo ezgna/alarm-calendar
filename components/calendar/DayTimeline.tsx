@@ -32,7 +32,13 @@ export default function DayTimeline() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ height: CONTENT_HEIGHT }}>
+      {/* NOTE: RNのheightはpaddingを含むため、paddingBottomを追加しても総高さは増えない。
+          スクロール余白を作るには高さ自体を増やす。*/}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ height: CONTENT_HEIGHT + HOUR_HEIGHT / 1.5 }}
+      >
         <View className="flex-row" style={{ height: CONTENT_HEIGHT }}>
           {/* 時刻欄 */}
           <View style={{ width: TIME_COL_WIDTH }}>

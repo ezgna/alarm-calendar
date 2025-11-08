@@ -5,7 +5,16 @@ import { DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navi
 function CustomDrawerContent(props: any) {
   return (
     <DrawerContentScrollView {...props}>
+      {/* 既定のリスト（ただし day は非表示にしてある） */}
       <DrawerItemList {...props} />
+      {/* 日（今日）へ移動するカスタム項目。params の残存を避けるため replace を使用 */}
+      <DrawerItem
+        label="今日"
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.replace("/(drawer)/day");
+        }}
+      />
       <DrawerItem
         label="設定"
         onPress={() => {
@@ -29,7 +38,8 @@ export default function DrawerLayout() {
       <Drawer.Screen name="index" options={{ drawerItemStyle: { display: "none" } }} />
       <Drawer.Screen name="month" options={{ drawerLabel: "月カレンダー", title: "月カレンダー" }} />
       <Drawer.Screen name="week" options={{ drawerLabel: "週間ビュー", title: "週間ビュー" }} />
-      <Drawer.Screen name="day" options={{ drawerLabel: "今日", title: "今日" }} />
+      {/* DrawerItemList 側では非表示にし、上のカスタム項目から遷移させる */}
+      <Drawer.Screen name="day" options={{ drawerLabel: "今日", title: "今日", drawerItemStyle: { display: "none" } }} />
     </Drawer>
   );
 }

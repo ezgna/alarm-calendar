@@ -60,7 +60,14 @@ export default function WeekTimeline() {
       </View>
 
       {/* タイムライン本体 */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={{ height: CONTENT_HEIGHT }}>
+      {/* Day と同様に最下部に余白を設けるため、
+          contentContainer の高さを増やす（paddingBottom ではスクロール領域が増えない）。
+          週ビューは約40分相当の余白として HOUR_HEIGHT / 1.5 を追加。*/}
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ height: CONTENT_HEIGHT + HOUR_HEIGHT / 1.5 }}
+      >
         <View className="flex-row" style={{ height: CONTENT_HEIGHT }}>
           {/* 時刻欄 */}
           <View style={{ width: TIME_COL_WIDTH }}>

@@ -1,7 +1,10 @@
-import { Stack } from 'expo-router';
+import { Stack } from "expo-router";
 
 export default function ModalLayout() {
   return (
-    <Stack screenOptions={{ presentation: 'modal', headerTitle: '設定' }} />
+    <Stack screenOptions={{ presentation: "modal" }}>
+      <Stack.Screen name="event-editor" options={{ headerTitle: "新規作成" }} />
+      <Stack.Screen name="settings" options={{ headerTitle: "設定" }} />
+    </Stack>
   );
 }
