@@ -5,7 +5,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { mmkvStorage } from '../storage/mmkv';
-import { initializeNotifications, ensurePermissions, scheduleOnce, cancelMany } from './service';
+import { initializeNotifications, ensurePermissions, scheduleOnce, cancelMany, listScheduled } from './service';
 import { fromUtcIsoToLocalDate } from '../../lib/date';
 
 // パターンキー
@@ -59,6 +59,14 @@ function defaultPatterns(): Record<PatternKey, PatternDef> {
   } as const;
 }
 
+const DBG = typeof __DEV__ !== 'undefined' ? __DEV__ : true;
+const log = (...args: any[]) => {
+  if (DBG) {
+    // eslint-disable-next-line no-console
+    console.log('[notif]', ...args);
+  }
+};
+
 function formatOffsetLabel(m: number): string {
   if (m === 0) return '開始時';
   if (m % 1440 === 0) return `${m / 1440}日前`;
@@ -111,15 +119,31 @@ export const useNotificationStore = create<State & Actions>()(
         const start = fromUtcIsoToLocalDate(event.startAt);
         const now = Date.now();
         const unique = clampAndSortOffsets(offsetsMin);
+        log('scheduleForEventWithOffsets', {
+          eventId: event.id,
+          title: event.title,
+          startAtISO: new Date(start.getTime()).toISOString(),
+          nowISO: new Date(now).toISOString(),
+          input: offsetsMin,
+          unique,
+        });
         const toSchedule = unique
           .map((m) => ({ m, date: new Date(start.getTime() - m * 60_000) }))
           .filter((x) => x.date.getTime() > now);
+        for (const x of toSchedule) {
+          log('plan', { offsetMin: x.m, label: formatOffsetLabel(x.m), atISO: x.date.toISOString() });
+        }
         const ids: string[] = [];
         for (const x of toSchedule) {
           const label = formatOffsetLabel(x.m);
           const id = await scheduleOnce({ date: x.date, title: event.title, body: label });
           if (id) ids.push(id);
         }
+        log('scheduled ids', ids);
+        try {
+          const all = await listScheduled();
+          log('getAllScheduledNotificationsAsync count', all.length);
+        } catch {}
         if (ids.length > 0) set((s) => ({ scheduledByEventId: { ...s.scheduledByEventId, [event.id]: ids } }));
         return ids;
       },

@@ -3,7 +3,14 @@
 // - 権限確認/要求
 // - 単発スケジュールと取消
 
-import * as Notifications from 'expo-notifications';
+import * as Notifications from "expo-notifications";
+
+const DBG = typeof __DEV__ !== "undefined" ? __DEV__ : true;
+const log = (...args: any[]) => {
+  if (DBG) {
+    console.log("[notif]", ...args);
+  }
+};
 
 let initialized = false;
 
@@ -13,11 +20,13 @@ export function initializeNotifications() {
   // フォアグラウンド時もアラート/サウンドを出す
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
-      shouldShowAlert: true,
       shouldPlaySound: true,
-      shouldSetBadge: false,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
     }),
   });
+  log("initialized handler (alert + sound in foreground)");
 }
 
 export async function ensurePermissions(): Promise<boolean> {
@@ -31,23 +40,24 @@ export async function ensurePermissions(): Promise<boolean> {
   }
 }
 
-export async function scheduleOnce(params: {
-  date: Date;
-  title: string;
-  body?: string;
-}): Promise<string | null> {
+export async function scheduleOnce(params: { date: Date; title: string; body?: string }): Promise<string | null> {
   try {
     const now = Date.now();
     const at = params.date.getTime();
-    if (at <= now) return null; // 過去は予約しない
+    if (at <= now) {
+      log("skip past date", { nowISO: new Date(now).toISOString(), atISO: new Date(at).toISOString(), title: params.title, body: params.body });
+      return null; // 過去は予約しない
+    }
+    log("scheduleOnce request", { atISO: new Date(at).toISOString(), title: params.title, body: params.body });
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: params.title,
         body: params.body,
-        sound: 'default', // 既定音を明示
+        sound: "default", // 既定音を明示
       },
-      trigger: { date: params.date },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: params.date },
     });
+    log("scheduled id", id);
     return id;
   } catch {
     return null;
@@ -62,7 +72,6 @@ export async function listScheduled() {
   try {
     return await Notifications.getAllScheduledNotificationsAsync();
   } catch {
-    return [] as Notifications.ScheduledNotification[];
+    return [] as Notifications.NotificationRequest[];
   }
 }
-

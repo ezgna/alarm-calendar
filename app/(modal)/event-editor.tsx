@@ -179,7 +179,7 @@ export default function EventEditor() {
                 key={k}
                 disabled={!usable}
                 onPress={() => usable && setPatternKey(k)}
-                className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""} ${!registered ? "opacity-50" : ""}`}
+                className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""}`}
               >
                 <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{p?.name ?? k}</Text>
               </TouchableOpacity>
