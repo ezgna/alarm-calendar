@@ -7,6 +7,7 @@ export type ThemeClassTokens = {
   // ベース
   appBg: string; // 画面ルート背景
   surfaceBg: string; // セル/カード等の面
+  weekdayBg: string; // 曜日行など“帯”の背景（ややくすみ）
   text: string; // 主要テキスト
   textMuted: string; // 補助テキスト
   border: string; // 枠線
@@ -39,7 +40,8 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
   // 現状踏襲のニュートラル基調
   simple: {
     appBg: 'bg-white',
-    surfaceBg: 'bg-white',
+    surfaceBg: 'bg-neutral-50',
+    weekdayBg: 'bg-neutral-100',
     text: 'text-neutral-900',
     textMuted: 'text-neutral-600',
     border: 'border-neutral-200',
@@ -62,8 +64,9 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
 
   // #e0ecec を基調
   mist: {
-    appBg: 'bg-[#e0ecec]',
-    surfaceBg: 'bg-white',
+    appBg: 'bg-white',
+    surfaceBg: 'bg-[#f5f9f9]',
+    weekdayBg: 'bg-[#dbe6e6]',
     text: 'text-neutral-900',
     textMuted: 'text-neutral-600',
     border: 'border-[#c7d7d7]',
@@ -86,8 +89,9 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
 
   // ピンク系（rose）
   rose: {
-    appBg: 'bg-rose-50',
-    surfaceBg: 'bg-white',
+    appBg: 'bg-white',
+    surfaceBg: 'bg-[#fffafb]',
+    weekdayBg: 'bg-rose-100',
     text: 'text-rose-950',
     textMuted: 'text-rose-700',
     border: 'border-rose-200',
@@ -111,7 +115,6 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
 
 export const THEME_HEX_TOKENS: Record<Flavor, ThemeHexTokens> = {
   simple: { appBg: '#ffffff', divider: '#e5e7eb' },
-  mist: { appBg: '#e0ecec', divider: '#c7d7d7' },
-  rose: { appBg: '#fff1f2', divider: '#fecdd3' },
+  mist: { appBg: '#f4f7f7', divider: '#c7d7d7' },
+  rose: { appBg: '#fff6f7', divider: '#fecdd3' },
 };
-

@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 16.26.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "Q7B38433PR",
+        "ascApiKeyPath": "/Users/sury/Downloads/AuthKey_3Z954J6U7X.p8",
+        "ascApiKeyIssuerId": "f95a0c08-d0cb-4df2-b364-5fa6a9eaefdb",
+        "ascApiKeyId": "3Z954J6U7X"
+      }
+    }
+  }
+}

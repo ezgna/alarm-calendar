@@ -1,6 +1,6 @@
 {
   "expo": {
-    "owner": "monashop",
+    "owner": "monashop0307",
     "name": "dotakyan-bancho",
     "slug": "dotakyan-bancho",
     "version": "1.0.0",
@@ -14,7 +14,10 @@
     "ios": {
       "icon": "assets/icons/app.icon",
       "supportsTablet": true,
-      "bundleIdentifier": "com.monashop.dotakyanbancho"
+      "bundleIdentifier": "com.monashop.dotakyanbancho",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -51,6 +54,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "e631bf73-ac0e-41ea-92f0-360cd574277c"
+      }
     }
   }
 }

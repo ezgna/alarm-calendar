@@ -1,16 +1,26 @@
-import { View, Text, Button, TouchableOpacity, TextInput, Keyboard, ScrollView, TouchableWithoutFeedback } from "react-native";
 import { router } from "expo-router";
-import { useThemeTokens } from "../../features/theme/useTheme";
-import { useThemeStore } from "../../features/theme/store";
-import { useNotificationStore, PatternKey } from "../../features/notifications/store";
 import { useMemo, useState } from "react";
+import { ActivityIndicator, Button, Keyboard, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { PatternKey, useNotificationStore } from "../../features/notifications/store";
+import { usePreferencesStore } from "../../features/preferences/store";
+import { useSubscriptionStore } from "../../features/subscription/store";
+import { useThemeStore } from "../../features/theme/store";
+import { useThemeTokens } from "../../features/theme/useTheme";
 
 export default function Settings() {
   const { t } = useThemeTokens();
   const flavor = useThemeStore((s) => s.flavor);
   const setFlavor = useThemeStore((s) => s.setFlavor);
+  const dayTapBehavior = usePreferencesStore((s) => s.dayTapBehavior);
+  const setDayTapBehavior = usePreferencesStore((s) => s.setDayTapBehavior);
   const patterns = useNotificationStore((s) => s.patterns);
   const savePattern = useNotificationStore((s) => s.savePattern);
+  const isPro = useSubscriptionStore((s) => s.isPro);
+  const busy = useSubscriptionStore((s) => s.busy);
+  const lastMessage = useSubscriptionStore((s) => s.lastMessage);
+  const refreshFromPurchases = useSubscriptionStore((s) => s.refreshFromPurchases);
+  const purchaseDefaultPackage = useSubscriptionStore((s) => s.purchaseDefaultPackage);
+  const restore = useSubscriptionStore((s) => s.restore);
   const [editing, setEditing] = useState<PatternKey | null>(null);
   const [name, setName] = useState("");
   // 通知タイミング（分）の選択肢（最大5件）
@@ -79,7 +89,7 @@ export default function Settings() {
     setShowCustom(false);
   };
   return (
-    <ScrollView style={{ flex: 1 }} className={`${t.surfaceBg}`} contentContainerClassName="pb-96">
+    <ScrollView style={{ flex: 1 }} className={`${t.appBg}`} contentContainerClassName="pb-96">
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, gap: 16 }}>
           {/* <Text className={`text-base font-semibold ${t.text}`}>設定</Text> */}
@@ -104,6 +114,53 @@ export default function Settings() {
               );
             })}
           </View>
+        </View>
+
+        {/* サブスクリプション（RevenueCat）テスト */}
+        <View style={{ gap: 8 }}>
+          <Text className={`${t.textMuted}`}>サブスクリプション（テスト）</Text>
+          <View className="flex-row items-center" style={{ gap: 12 }}>
+            <View className="px-2 py-1 rounded-md border" style={{ borderColor: '#e5e7eb' }}>
+              <Text className={`${t.text}`}>現在: {isPro ? 'Pro' : 'Free'}</Text>
+            </View>
+            {busy && <ActivityIndicator />}
+          </View>
+          {lastMessage && <Text className={`${t.textMuted}`}>{lastMessage}</Text>}
+          <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+            <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={purchaseDefaultPackage}>
+              <Text className={`${t.buttonPrimaryText}`}>購入テスト</Text>
+            </TouchableOpacity>
+            <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={refreshFromPurchases}>
+              <Text className={`${t.buttonNeutralText}`}>権限を更新</Text>
+            </TouchableOpacity>
+            <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={restore}>
+              <Text className={`${t.buttonNeutralText}`}>購入を復元</Text>
+            </TouchableOpacity>
+          </View>
+          <Text className={`${t.textMuted}`}>テスト中: RevenueCatテストキーでiOSを構成（app/_layout.tsx）。</Text>
+        </View>
+
+        {/* 月カレンダーのタップ挙動 */}
+        <View style={{ gap: 8 }}>
+          <Text className={`${t.textMuted}`}>月カレンダーのタップ挙動</Text>
+          <View className="flex-row gap-4">
+            {([
+              { key: 'openDay', label: '日画面を開く' },
+              { key: 'openNewModal', label: '新規作成を開く' },
+            ] as const).map((opt) => {
+              const active = dayTapBehavior === opt.key;
+              return (
+                <TouchableOpacity
+                  key={opt.key}
+                  onPress={() => setDayTapBehavior(opt.key as any)}
+                  className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ''}`}
+                >
+                  <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <Text className={`${t.textMuted}`}>長押しは常に「新規作成」を開きます。</Text>
         </View>
 
         {/* アラームパターン */}

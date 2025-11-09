@@ -114,7 +114,7 @@ export default function WeekTimeline() {
   }, [eventsByDay, days]);
 
   return (
-    <View className={`flex-1 ${t.surfaceBg}`}>
+    <View className={`flex-1 ${t.appBg}`}>
       {/* 上部の曜日ヘッダー */}
       <View className={`flex-row border-b ${t.headerBorder}`}>
         <View style={{ width: TIME_COL_WIDTH }} className="items-center justify-center py-2">

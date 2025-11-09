@@ -103,7 +103,7 @@ export default function DayTimeline() {
   }, [events, date]);
 
   return (
-    <View className={`flex-1 ${t.surfaceBg}`}>
+    <View className={`flex-1 ${t.appBg}`}>
       {/* NOTE: 余白は高さに加算済み */}
       <ScrollView
         className="flex-1"

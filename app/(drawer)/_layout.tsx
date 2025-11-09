@@ -1,6 +1,8 @@
-import { Drawer } from "expo-router/drawer";
+import { DrawerContentScrollView, DrawerItem, DrawerItemList } from "@react-navigation/drawer";
 import { router } from "expo-router";
-import { DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navigation/drawer";
+import { Drawer } from "expo-router/drawer";
+import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
+import { useSubscriptionStore } from "../../features/subscription/store";
 
 function CustomDrawerContent(props: any) {
   return (
@@ -13,6 +15,24 @@ function CustomDrawerContent(props: any) {
         onPress={() => {
           props.navigation.closeDrawer();
           router.replace("/(drawer)/day");
+        }}
+      />
+      {/* プレミアム（RevenueCat UI のペイウォールを直接表示） */}
+      <DrawerItem
+        label="プレミアム"
+        onPress={async () => {
+          try {
+            props.navigation.closeDrawer();
+            const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: "pro" });
+            const ok = result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED || result === PAYWALL_RESULT.NOT_PRESENTED;
+            await useSubscriptionStore.getState().refreshFromPurchases();
+            return ok;
+          } catch (e) {
+            console.warn(e)
+            try {
+              await useSubscriptionStore.getState().refreshFromPurchases();
+            } catch {}
+          }
         }}
       />
       <DrawerItem

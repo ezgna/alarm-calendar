@@ -6,6 +6,7 @@ import { useEventStore } from "../../features/events/store";
 import { router } from "expo-router";
 import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
 import { useThemeTokens } from "../../features/theme/useTheme";
+import { usePreferencesStore } from "../../features/preferences/store";
 
 export default function MonthGrid() {
   const { t } = useThemeTokens();
@@ -18,6 +19,7 @@ export default function MonthGrid() {
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
   const todayKey = formatLocalDay(new Date());
+  const dayTap = usePreferencesStore((s) => s.dayTapBehavior);
 
   const data = useMemo(
     () =>
@@ -38,7 +40,7 @@ export default function MonthGrid() {
 
   return (
     <View className={`flex-1 ${t.appBg}`}>
-      <View className={`flex-row py-2 border-b ${t.headerBorder}`}>
+      <View className={`flex-row py-2 border-b ${t.headerBorder} ${t.weekdayBg}`}>
         {["日", "月", "火", "水", "木", "金", "土"].map((w) => (
           <View key={w} className="flex-1 items-center">
             <Text className={`text-xs ${t.textMuted}`}>{w}</Text>
@@ -53,14 +55,20 @@ export default function MonthGrid() {
           scrollEnabled={false}
           renderItem={({ item }) => (
             <TouchableOpacity
-              className={`flex-1 p-1 border-b border-r ${t.border} ${item.isCurrentMonth ? t.surfaceBg : t.surfaceBg}`}
+              className={`flex-1 p-1 border-b border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
               style={{ height: cell || undefined }}
               onPress={() => {
-                // 日にちタップでその日に遷移
-                // Day 画面側で「月から来た」ことを判定できるように origin=month を付与
-                useCalendarStore.getState().setDate(new Date(item.date));
-                useCalendarStore.getState().setView("day");
-                router.push({ pathname: "/(drawer)/day", params: { origin: "month" } });
+                // 設定に応じて挙動分岐
+                if (dayTap === 'openNewModal') {
+                  const d = new Date(item.date);
+                  d.setHours(new Date().getHours(), 0, 0, 0);
+                  router.push({ pathname: "/(modal)/event-editor", params: { date: d.toISOString() } });
+                } else {
+                  // 日にちタップでその日に遷移（既定）
+                  useCalendarStore.getState().setDate(new Date(item.date));
+                  useCalendarStore.getState().setView("day");
+                  router.push({ pathname: "/(drawer)/day", params: { origin: "month" } });
+                }
               }}
               onLongPress={() => {
                 const d = new Date(item.date);
