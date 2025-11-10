@@ -37,7 +37,7 @@ export type ThemeHexTokens = {
 };
 
 export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
-  // 現状踏襲のニュートラル基調
+  // ニュートラル基調
   simple: {
     appBg: 'bg-white',
     surfaceBg: 'bg-neutral-50',
@@ -62,11 +62,11 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     badgeTodayText: 'text-white',
   },
 
-  // #e0ecec を基調
   mist: {
     appBg: 'bg-white',
     surfaceBg: 'bg-[#f5f9f9]',
-    weekdayBg: 'bg-[#dbe6e6]',
+    weekdayBg: 'bg-[#9CA99E]',
+    // weekdayBg: 'bg-[#dbe6e6]',
     text: 'text-neutral-900',
     textMuted: 'text-neutral-600',
     border: 'border-[#c7d7d7]',
@@ -76,7 +76,8 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     headerBorder: 'border-[#c7d7d7]',
     timeText: 'text-neutral-600',
 
-    buttonPrimaryBg: 'bg-teal-600',
+    buttonPrimaryBg: 'bg-[#9CA99E]',
+    // buttonPrimaryBg: 'bg-teal-600',
     buttonPrimaryText: 'text-white',
     buttonNeutralBg: 'bg-[#d5e3e3]',
     buttonNeutralText: 'text-neutral-900',
@@ -87,11 +88,12 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     badgeTodayText: 'text-white',
   },
 
-  // ピンク系（rose）
+  // ピンク系
   rose: {
     appBg: 'bg-white',
     surfaceBg: 'bg-[#fffafb]',
-    weekdayBg: 'bg-rose-100',
+    weekdayBg: 'bg-[#D3A6A1]',
+    // weekdayBg: 'bg-rose-100',
     text: 'text-rose-950',
     textMuted: 'text-rose-700',
     border: 'border-rose-200',
@@ -101,7 +103,8 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     headerBorder: 'border-rose-200',
     timeText: 'text-rose-600',
 
-    buttonPrimaryBg: 'bg-rose-500',
+    buttonPrimaryBg: 'bg-[#D2A7B3]',
+    // buttonPrimaryBg: 'bg-rose-500',
     buttonPrimaryText: 'text-white',
     buttonNeutralBg: 'bg-rose-100',
     buttonNeutralText: 'text-rose-900',

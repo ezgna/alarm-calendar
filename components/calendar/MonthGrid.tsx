@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
 import { useThemeTokens } from "../../features/theme/useTheme";
 import { usePreferencesStore } from "../../features/preferences/store";
+import PlatformBannerAd from "../common/PlatformBannerAd";
 
 export default function MonthGrid() {
   const { t } = useThemeTokens();
@@ -53,9 +54,9 @@ export default function MonthGrid() {
           numColumns={7}
           keyExtractor={(item) => item.key}
           scrollEnabled={false}
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <TouchableOpacity
-              className={`flex-1 p-1 border-b border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
+              className={`flex-1 p-1 ${index >= data.length - 7 ? '' : 'border-b'} border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
               style={{ height: cell || undefined }}
               onPress={() => {
                 // 設定に応じて挙動分岐
@@ -100,11 +101,13 @@ export default function MonthGrid() {
                   {item.events.slice(0, 3).map((e) => {
                     const c = getColorClasses(e.colorId ?? DEFAULT_COLOR_ID);
                     return (
-                      <View key={e.id} className="flex-row items-center gap-1">
-                        <View className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                        <Text className={`text-[10px] ${t.text}`} numberOfLines={1}>
-                          {e.title}
-                        </Text>
+                      <View key={e.id} className="items-start">
+                        {/* カテゴリ色の背景を持つチップ */}
+                        <View className={`rounded px-1 py-0.5 self-start max-w-full ${c.bg}`}>
+                          <Text className={`text-[10px] ${c.text}`} numberOfLines={1}>
+                            {e.title}
+                          </Text>
+                        </View>
                       </View>
                     );
                   })}
@@ -116,6 +119,7 @@ export default function MonthGrid() {
           contentContainerStyle={{}}
         />
       </View>
+      <PlatformBannerAd />
     </View>
   );
 }

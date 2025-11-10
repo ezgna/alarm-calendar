@@ -8,6 +8,10 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { initializeNotifications, ensurePermissions } from "../features/notifications/service";
 import Purchases, { LOG_LEVEL } from "react-native-purchases";
 import { useSubscriptionStore } from "../features/subscription/store";
+import { getTrackingPermissionsAsync, PermissionStatus, requestTrackingPermissionsAsync } from "expo-tracking-transparency";
+import mobileAds from "react-native-google-mobile-ads";
+import { setConsent } from "@/lib/ads/consent";
+import { useAdsStore } from "@/features/ads/store";
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
@@ -44,6 +48,32 @@ export default function RootLayout() {
     });
     return () => sub.remove();
   }, [rebuildIndex]);
+
+  useEffect(() => {
+    (async () => {
+      if (Platform.OS === "ios") {
+        let { status: trackingStatus } = await getTrackingPermissionsAsync();
+        if (trackingStatus === PermissionStatus.UNDETERMINED) {
+          const req = await requestTrackingPermissionsAsync();
+          trackingStatus = req.status;
+        }
+
+        const npa = trackingStatus !== PermissionStatus.GRANTED;
+        setConsent(npa);
+        try { useAdsStore.getState().setConsentResolved(true); } catch {}
+      }
+      await mobileAds().initialize();
+      try { useAdsStore.getState().setAdsReady(true); } catch {}
+
+      if (__DEV__) {
+        try {
+          await mobileAds().openAdInspector();
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    })();
+  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
