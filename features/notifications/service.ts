@@ -1,9 +1,10 @@
-// iOS 既定音のみのローカル通知用 下回りサービス
+// ローカル通知 下回りサービス（iOS: カスタムサウンド対応）
 // - ハンドラ設定（フォアグラウンドでも表示＋音）
 // - 権限確認/要求
-// - 単発スケジュールと取消
+// - 単発スケジュールと取消（iOSは NotificationContent.sound に 'default' または同梱ファイル名を指定）
 
 import * as Notifications from "expo-notifications";
+import { resolveIosSound, type SoundId } from "./sounds";
 
 const DBG = typeof __DEV__ !== "undefined" ? __DEV__ : true;
 const log = (...args: any[]) => {
@@ -40,29 +41,79 @@ export async function ensurePermissions(): Promise<boolean> {
   }
 }
 
-export async function scheduleOnce(params: { date: Date; title: string; body?: string }): Promise<string | null> {
+export async function scheduleOnce(params: {
+  date: Date;
+  title: string;
+  body?: string;
+  soundId?: SoundId; // ← 追加：'default' | 'beep' | 'brightUpbeat' | 'classic' | 'magical' | 'refreshingWakeup'
+}): Promise<string | null> {
   try {
     const now = Date.now();
     const at = params.date.getTime();
     if (at <= now) {
-      log("skip past date", { nowISO: new Date(now).toISOString(), atISO: new Date(at).toISOString(), title: params.title, body: params.body });
+      log("skip past date", {
+        nowISO: new Date(now).toISOString(),
+        atISO: new Date(at).toISOString(),
+        title: params.title,
+        body: params.body,
+      });
       return null; // 過去は予約しない
     }
-    log("scheduleOnce request", { atISO: new Date(at).toISOString(), title: params.title, body: params.body });
+
+    // iOS: 'default' か 'xxx.wav'（パスなし）のどちらかを渡す
+    const iosSound = resolveIosSound(params.soundId);
+
+    log("scheduleOnce request", {
+      atISO: new Date(at).toISOString(),
+      title: params.title,
+      body: params.body,
+      sound: iosSound,
+    });
+
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title: params.title,
         body: params.body,
-        sound: "default", // 既定音を明示
+        sound: iosSound,
       },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: params.date },
+      // DATE トリガー（絶対時刻）
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: params.date,
+      },
     });
+
     log("scheduled id", id);
     return id;
-  } catch {
+  } catch (e) {
+    log("scheduleOnce error", String(e));
     return null;
   }
 }
+
+// export async function scheduleOnce(params: { date: Date; title: string; body?: string }): Promise<string | null> {
+//   try {
+//     const now = Date.now();
+//     const at = params.date.getTime();
+//     if (at <= now) {
+//       log("skip past date", { nowISO: new Date(now).toISOString(), atISO: new Date(at).toISOString(), title: params.title, body: params.body });
+//       return null; // 過去は予約しない
+//     }
+//     log("scheduleOnce request", { atISO: new Date(at).toISOString(), title: params.title, body: params.body });
+//     const id = await Notifications.scheduleNotificationAsync({
+//       content: {
+//         title: params.title,
+//         body: params.body,
+//         sound: "default", // 既定音を明示
+//       },
+//       trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: params.date },
+//     });
+//     log("scheduled id", id);
+//     return id;
+//   } catch {
+//     return null;
+//   }
+// }
 
 export async function cancelMany(ids: string[]) {
   await Promise.all(ids.map((id) => Notifications.cancelScheduledNotificationAsync(id).catch(() => {})));

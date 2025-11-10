@@ -17,7 +17,7 @@ export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
 
   useEffect(() => {
-    Purchases.setLogLevel(LOG_LEVEL.VERBOSE);
+    Purchases.setLogLevel(LOG_LEVEL.ERROR);
 
     if (Platform.OS === "ios") {
       Purchases.configure({ apiKey: "test_mXwQWRRvWDUEssZMppWeEKNfBHH" });
@@ -67,7 +67,7 @@ export default function RootLayout() {
 
       if (__DEV__) {
         try {
-          await mobileAds().openAdInspector();
+          // await mobileAds().openAdInspector();
         } catch (e) {
           console.error(e);
         }

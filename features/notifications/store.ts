@@ -1,4 +1,4 @@
-// 通知スケジュールの永続化とイベント連動（iOS 既定音のみ）
+// 通知スケジュールの永続化とイベント連動（iOS: カスタムサウンド対応）
 // - 既定オフセット（分）での予約/取消/再予約
 // - eventId -> notificationIds[] のマッピング
 
@@ -6,6 +6,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { mmkvStorage } from '../storage/mmkv';
 import { initializeNotifications, ensurePermissions, scheduleOnce, cancelMany, listScheduled } from './service';
+import type { SoundId } from './sounds';
 import { fromUtcIsoToLocalDate } from '../../lib/date';
 
 // パターンキー
@@ -16,6 +17,7 @@ export type PatternDef = {
   name: string;
   offsetsMin: number[]; // 0〜4320、最大5件
   registered: boolean; // UI表示のためのフラグ（未登録なら選択不可）
+  soundId?: SoundId; // iOS: 通知サウンドID（未指定は 'default'）
 };
 
 type Mapping = Record<string, string[]>; // eventId -> [notificationId]
@@ -29,14 +31,14 @@ type State = {
 
 type Actions = {
   // パターン管理
-  savePattern: (key: PatternKey, input: { name: string; offsetsMin: number[] }) => void;
+  savePattern: (key: PatternKey, input: { name: string; offsetsMin: number[]; soundId?: SoundId }) => void;
   resetPattern: (key: PatternKey) => void;
   setLastUsedPatternKey: (key: PatternKey) => void;
   setEventPattern: (eventId: string, key: PatternKey) => void;
 
   // 予約操作
   scheduleForEvent: (event: { id: string; title: string; startAt: string }) => Promise<string[]>; // 互換: defaultを使用
-  scheduleForEventWithOffsets: (event: { id: string; title: string; startAt: string }, offsetsMin: number[]) => Promise<string[]>;
+  scheduleForEventWithOffsets: (event: { id: string; title: string; startAt: string }, offsetsMin: number[], soundId?: SoundId) => Promise<string[]>;
   scheduleForEventWithPattern: (event: { id: string; title: string; startAt: string }, key: PatternKey) => Promise<string[]>;
   cancelForEvent: (eventId: string) => Promise<void>;
   rescheduleForEvent: (event: { id: string; title: string; startAt: string }, key?: PatternKey) => Promise<string[]>;
@@ -52,17 +54,16 @@ function clampAndSortOffsets(offsets: number[]): number[] {
 
 function defaultPatterns(): Record<PatternKey, PatternDef> {
   return {
-    default: { name: 'デフォルト', offsetsMin: [60, 5], registered: true },
-    A: { name: 'カスタム1', offsetsMin: [], registered: false },
-    B: { name: 'カスタム2', offsetsMin: [], registered: false },
-    C: { name: 'カスタム3', offsetsMin: [], registered: false },
+    default: { name: 'デフォルト', offsetsMin: [60, 5], registered: true, soundId: 'default' },
+    A: { name: 'カスタム1', offsetsMin: [], registered: false, soundId: 'default' },
+    B: { name: 'カスタム2', offsetsMin: [], registered: false, soundId: 'default' },
+    C: { name: 'カスタム3', offsetsMin: [], registered: false, soundId: 'default' },
   } as const;
 }
 
 const DBG = typeof __DEV__ !== 'undefined' ? __DEV__ : true;
 const log = (...args: any[]) => {
   if (DBG) {
-    // eslint-disable-next-line no-console
     console.log('[notif]', ...args);
   }
 };
@@ -93,7 +94,12 @@ export const useNotificationStore = create<State & Actions>()(
         set((s) => ({
           patterns: {
             ...s.patterns,
-            [key]: { name: input.name || s.patterns[key].name, offsetsMin: offsets, registered: true },
+            [key]: {
+              name: input.name || s.patterns[key].name,
+              offsetsMin: offsets,
+              registered: true,
+              soundId: input.soundId ?? s.patterns[key].soundId ?? 'default',
+            },
           },
         }));
       },
@@ -112,7 +118,7 @@ export const useNotificationStore = create<State & Actions>()(
         return await get().scheduleForEventWithPattern(event, 'default');
       },
 
-      scheduleForEventWithOffsets: async (event, offsetsMin) => {
+      scheduleForEventWithOffsets: async (event, offsetsMin, soundId) => {
         initializeNotifications();
         const ok = await ensurePermissions();
         if (!ok) return [];
@@ -136,7 +142,7 @@ export const useNotificationStore = create<State & Actions>()(
         const ids: string[] = [];
         for (const x of toSchedule) {
           const label = formatOffsetLabel(x.m);
-          const id = await scheduleOnce({ date: x.date, title: event.title, body: label });
+          const id = await scheduleOnce({ date: x.date, title: event.title, body: label, soundId });
           if (id) ids.push(id);
         }
         log('scheduled ids', ids);
@@ -151,7 +157,8 @@ export const useNotificationStore = create<State & Actions>()(
       scheduleForEventWithPattern: async (event, key) => {
         const p = get().patterns[key] ?? get().patterns['default'];
         const offsets = p.registered ? p.offsetsMin : get().patterns['default'].offsetsMin;
-        return await get().scheduleForEventWithOffsets(event, offsets);
+        const soundId = p.soundId ?? 'default';
+        return await get().scheduleForEventWithOffsets(event, offsets, soundId);
       },
 
       cancelForEvent: async (eventId) => {

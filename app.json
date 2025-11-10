@@ -37,8 +37,19 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications",
       "expo-tracking-transparency",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/beep.wav",
+            "./assets/sounds/bright_upbeat.wav",
+            "./assets/sounds/classic.wav",
+            "./assets/sounds/magical.wav",
+            "./assets/sounds/refreshing_wakeup.wav"
+          ]
+        }
+      ],
       [
         "expo-splash-screen",
         {
