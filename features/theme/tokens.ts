@@ -92,7 +92,7 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
   rose: {
     appBg: 'bg-white',
     surfaceBg: 'bg-[#fffafb]',
-    weekdayBg: 'bg-[#D3A6A1]',
+    weekdayBg: 'bg-[#D2A7B3]',
     // weekdayBg: 'bg-rose-100',
     text: 'text-rose-950',
     textMuted: 'text-rose-700',

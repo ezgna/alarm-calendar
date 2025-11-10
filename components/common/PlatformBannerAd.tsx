@@ -13,7 +13,7 @@ const PlatformBannerAd = () => {
     ? TestIds.ADAPTIVE_BANNER
     : Platform.select({
         ios: "ca-app-pub-1351324135516324/6034250878",
-        android: "",
+        android: "ca-app-pub-1351324135516324/6934067871",
       })!;
 
   // 同意は起動後に決まるため毎回取得し、キーで再マウントして反映する

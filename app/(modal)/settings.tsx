@@ -16,7 +16,7 @@ export default function Settings() {
   const setDayTapBehavior = usePreferencesStore((s) => s.setDayTapBehavior);
   const patterns = useNotificationStore((s) => s.patterns);
   const savePattern = useNotificationStore((s) => s.savePattern);
-  const isPro = useSubscriptionStore((s) => s.isPro);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
   const busy = useSubscriptionStore((s) => s.busy);
   const lastMessage = useSubscriptionStore((s) => s.lastMessage);
   const refreshFromPurchases = useSubscriptionStore((s) => s.refreshFromPurchases);
@@ -103,7 +103,6 @@ export default function Settings() {
             <View className="flex-row gap-4">
               {(
                 [
-                  { key: "simple", label: "シンプル" },
                   { key: "mist", label: "ミスト" },
                   { key: "rose", label: "ローズ" },
                 ] as const
@@ -127,7 +126,7 @@ export default function Settings() {
             <Text className={`${t.textMuted}`}>サブスクリプション（テスト）</Text>
             <View className="flex-row items-center" style={{ gap: 12 }}>
               <View className="px-2 py-1 rounded-md border" style={{ borderColor: "#e5e7eb" }}>
-                <Text className={`${t.text}`}>現在: {isPro ? "Pro" : "Free"}</Text>
+                <Text className={`${t.text}`}>現在: {isPremium ? "Premium" : "Free"}</Text>
               </View>
               {busy && <ActivityIndicator />}
             </View>

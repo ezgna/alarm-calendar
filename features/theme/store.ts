@@ -17,7 +17,7 @@ type Actions = {
 export const useThemeStore = create<State & Actions>()(
   persist(
     (set) => ({
-      flavor: 'simple',
+      flavor: 'mist',
       setFlavor: (f) => set({ flavor: f }),
     }),
     {
@@ -27,4 +27,3 @@ export const useThemeStore = create<State & Actions>()(
     }
   )
 );
-

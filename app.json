@@ -66,7 +66,7 @@
         "react-native-google-mobile-ads",
         {
           "iosAppId": "ca-app-pub-1351324135516324~2671265527",
-          "androidAppId": "ca-app-pub-xxxxxxxx~xxxxxxxx",
+          "androidAppId": "ca-app-pub-1351324135516324~5948289268",
           "userTrackingUsageDescription": "許可すると、あなたに合った広告が表示されるようになります。",
           "skAdNetworkItems": [
             "cstr6suwn9.skadnetwork",
@@ -120,7 +120,7 @@
             "3qcr597p9d.skadnetwork"
           ]
         }
-      ],
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

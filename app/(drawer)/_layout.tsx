@@ -23,7 +23,7 @@ function CustomDrawerContent(props: any) {
         onPress={async () => {
           try {
             props.navigation.closeDrawer();
-            const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: "pro" });
+            const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: "premium" });
             const ok = result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED || result === PAYWALL_RESULT.NOT_PRESENTED;
             await useSubscriptionStore.getState().refreshFromPurchases();
             return ok;

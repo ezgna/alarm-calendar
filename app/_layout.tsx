@@ -20,7 +20,7 @@ export default function RootLayout() {
     Purchases.setLogLevel(LOG_LEVEL.ERROR);
 
     if (Platform.OS === "ios") {
-      Purchases.configure({ apiKey: "test_mXwQWRRvWDUEssZMppWeEKNfBHH" });
+      Purchases.configure({ apiKey: "appl_laqfZVBJkcTrHBwFRunTgmwimmu" });
     }
   }, []);
 

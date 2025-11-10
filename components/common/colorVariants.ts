@@ -1,28 +1,32 @@
 // NativeWind の className をリテラルで保持するカラー・バリアント定義
 
-export type ColorId = 'red' | 'blue' | 'green' | 'amber' | 'purple' | 'teal';
+// 新しいカテゴリ色（6色）
+export type ColorId = 'roseGray' | 'blush' | 'wisteria' | 'blueGray' | 'sage' | 'almond';
 
-export const DEFAULT_COLOR_ID: ColorId = 'blue';
+// 既定色はブルーグレー
+export const DEFAULT_COLOR_ID: ColorId = 'blueGray';
 
+// 画面表示用の短い日本語ラベル
 export const COLOR_LABELS: Record<ColorId, string> = {
-  red: 'レッド',
-  blue: 'ブルー',
-  green: 'グリーン',
-  amber: 'アンバー',
-  purple: 'パープル',
-  teal: 'ティール',
+  roseGray: 'ローズグレー',
+  blush: 'ブラッシュ',
+  wisteria: 'ライラック',
+  blueGray: 'ブルーグレー',
+  sage: 'セージ',
+  almond: 'アーモンド',
 };
 
+// Tailwind 任意値クラス（bg-[#HEX] など）をリテラルで列挙し、パージ対象に検出させる
 export const COLOR_VARIANTS: Record<
   ColorId,
   { bg: string; text: string; border?: string; dot: string }
 > = {
-  red: { bg: 'bg-red-500', text: 'text-white', border: 'border-red-600', dot: 'bg-red-500' },
-  blue: { bg: 'bg-blue-500', text: 'text-white', border: 'border-blue-600', dot: 'bg-blue-500' },
-  green: { bg: 'bg-green-500', text: 'text-white', border: 'border-green-600', dot: 'bg-green-500' },
-  amber: { bg: 'bg-amber-500', text: 'text-black', border: 'border-amber-600', dot: 'bg-amber-500' },
-  purple: { bg: 'bg-purple-500', text: 'text-white', border: 'border-purple-600', dot: 'bg-purple-500' },
-  teal: { bg: 'bg-teal-500', text: 'text-white', border: 'border-teal-600', dot: 'bg-teal-500' },
+  roseGray: { bg: 'bg-[#C19F9F]', text: 'text-black', border: 'border-[#B59292]', dot: 'bg-[#C19F9F]' },
+  blush: { bg: 'bg-[#E8B4B4]', text: 'text-black', border: 'border-[#D09D9D]', dot: 'bg-[#E8B4B4]' },
+  wisteria: { bg: 'bg-[#A58FAB]', text: 'text-black', border: 'border-[#927A98]', dot: 'bg-[#A58FAB]' },
+  blueGray: { bg: 'bg-[#778899]', text: 'text-black', border: 'border-[#6B7A89]', dot: 'bg-[#778899]' },
+  sage: { bg: 'bg-[#A9BA8E]', text: 'text-black', border: 'border-[#94A677]', dot: 'bg-[#A9BA8E]' },
+  almond: { bg: 'bg-[#D2BA89]', text: 'text-black', border: 'border-[#C0A873]', dot: 'bg-[#D2BA89]' },
 };
 
 export function getColorClasses(id?: string) {
@@ -30,18 +34,19 @@ export function getColorClasses(id?: string) {
   return COLOR_VARIANTS[key] ?? COLOR_VARIANTS[DEFAULT_COLOR_ID];
 }
 
-export const COLOR_IDS: ColorId[] = ['red', 'blue', 'green', 'amber', 'purple', 'teal'];
+// Picker 表示順
+export const COLOR_IDS: ColorId[] = ['roseGray', 'blush', 'wisteria', 'blueGray', 'sage', 'almond'];
 
-// style 用の HEX 値（Tailwind v3 相当の色）
+// style 用の HEX 値（テキストは全色黒）
 export type ColorHex = { bg: string; text: string; border: string };
 
 export const COLOR_HEX: Record<ColorId, ColorHex> = {
-  red: { bg: '#ef4444', text: '#ffffff', border: '#dc2626' },
-  blue: { bg: '#3b82f6', text: '#ffffff', border: '#2563eb' },
-  green: { bg: '#22c55e', text: '#ffffff', border: '#16a34a' },
-  amber: { bg: '#f59e0b', text: '#000000', border: '#d97706' },
-  purple: { bg: '#a855f7', text: '#ffffff', border: '#9333ea' },
-  teal: { bg: '#14b8a6', text: '#ffffff', border: '#0d9488' },
+  roseGray: { bg: '#C19F9F', text: '#000000', border: '#B59292' },
+  blush: { bg: '#E8B4B4', text: '#000000', border: '#D09D9D' },
+  wisteria: { bg: '#A58FAB', text: '#000000', border: '#927A98' },
+  blueGray: { bg: '#778899', text: '#000000', border: '#6B7A89' },
+  sage: { bg: '#A9BA8E', text: '#000000', border: '#94A677' },
+  almond: { bg: '#D2BA89', text: '#000000', border: '#C0A873' },
 };
 
 export function getColorHex(id?: string): ColorHex {

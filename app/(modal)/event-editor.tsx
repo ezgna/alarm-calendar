@@ -1,5 +1,5 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import ColorPicker from "../../components/common/ColorPicker";
@@ -24,6 +24,7 @@ export default function EventEditor() {
   const eventPatternKeyByEventId = useNotificationStore((s) => s.eventPatternKeyByEventId);
 
   const existing = id ? getById[id] : undefined;
+  const isEdit = !!id; // 画面ヘッダーは ID の有無で判定（ストアの読込待ちによるチラつきを防ぐ）
 
   const [title, setTitle] = useState(existing?.title ?? "");
   const [colorId, setColorId] = useState(existing?.colorId ?? DEFAULT_COLOR_ID);
@@ -106,7 +107,10 @@ export default function EventEditor() {
   };
 
   return (
-    <ScrollView className={`flex-1 pt-12 p-4 ${t.surfaceBg}`} contentContainerStyle={{ gap: 16 }}>
+    <>
+      {/* ヘッダータイトル：新規作成 or 編集 を動的に切替 */}
+      <Stack.Screen options={{ headerTitle: isEdit ? "編集" : "新規作成" }} />
+      <ScrollView className={`flex-1 p-4 ${t.surfaceBg}`} contentContainerStyle={{ gap: 16 }}>
       <View className="gap-2">
         <Text className={`text-sm ${t.textMuted}`}>タイトル（必須）</Text>
         <TextInput className={`border rounded-md px-3 py-2 ${t.border}`} placeholder="タイトル" value={title} onChangeText={setTitle} />
@@ -230,6 +234,7 @@ export default function EventEditor() {
           <Text className={`${t.buttonPrimaryText} font-semibold`}>保存</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }

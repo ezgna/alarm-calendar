@@ -1,18 +1,18 @@
 // RevenueCat 購入/権限の簡易ストア
-// - isPro: Entitlements に 'pro' が存在するか
+// - isPremium: Entitlements に 'premium' が存在するか
 // - 操作用のユーティリティ: 購入/復元/同期
 
 import { create } from 'zustand';
 import Purchases, { PurchasesError, PurchasesErrorCode } from 'react-native-purchases';
 
 type State = {
-  isPro: boolean;
+  isPremium: boolean;
   lastMessage?: string;
   busy: boolean;
 };
 
 type Actions = {
-  setIsPro: (v: boolean) => void;
+  setIsPremium: (v: boolean) => void;
   refreshFromPurchases: () => Promise<void>;
   purchaseDefaultPackage: () => Promise<void>;
   restore: () => Promise<void>;
@@ -20,19 +20,19 @@ type Actions = {
 };
 
 export const useSubscriptionStore = create<State & Actions>((set) => ({
-  isPro: false,
+  isPremium: false,
   busy: false,
   lastMessage: undefined,
 
-  setIsPro: (v) => set({ isPro: v }),
+  setIsPremium: (v) => set({ isPremium: v }),
 
   refreshFromPurchases: async () => {
     try {
       set({ busy: true, lastMessage: undefined });
       const info = await Purchases.getCustomerInfo();
       const active = info.entitlements.active as any;
-      const isPro = !!active?.pro;
-      set({ isPro, lastMessage: isPro ? 'Proが有効です' : 'Proは未購入です' });
+      const isPremium = !!active?.premium;
+      set({ isPremium, lastMessage: isPremium ? 'Premiumが有効です' : 'Premiumは未購入です' });
     } catch (e) {
       const err = e as PurchasesError;
       set({ lastMessage: `権限確認に失敗: ${err?.message ?? '不明なエラー'}` });
@@ -50,8 +50,8 @@ export const useSubscriptionStore = create<State & Actions>((set) => ({
       if (!pkg) throw new Error('販売商品が見つからない');
       const { customerInfo } = await Purchases.purchasePackage(pkg);
       const active = customerInfo.entitlements.active as any;
-      const isPro = !!active?.pro;
-      set({ isPro, lastMessage: isPro ? '購入完了: Proが有効になりました' : '購入済みですが Pro は無効です' });
+      const isPremium = !!active?.premium;
+      set({ isPremium, lastMessage: isPremium ? '購入完了: Premiumが有効になりました' : '購入済みですが Premium は無効です' });
     } catch (e) {
       const err = e as PurchasesError;
       if (err?.code === PurchasesErrorCode.PurchaseCancelledError) {
@@ -69,8 +69,8 @@ export const useSubscriptionStore = create<State & Actions>((set) => ({
       set({ busy: true, lastMessage: undefined });
       const info = await Purchases.restorePurchases();
       const active = info.entitlements.active as any;
-      const isPro = !!active?.pro;
-      set({ isPro, lastMessage: isPro ? '購入を復元しました: Pro有効' : '復元しましたが Pro は無効です' });
+      const isPremium = !!active?.premium;
+      set({ isPremium, lastMessage: isPremium ? '購入を復元しました: Premium有効' : '復元しましたが Premium は無効です' });
     } catch (e) {
       const err = e as PurchasesError;
       set({ lastMessage: `復元に失敗: ${err?.message ?? '不明なエラー'}` });
@@ -81,4 +81,3 @@ export const useSubscriptionStore = create<State & Actions>((set) => ({
 
   clearMessage: () => set({ lastMessage: undefined }),
 }));
-
