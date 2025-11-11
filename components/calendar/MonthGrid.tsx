@@ -44,7 +44,8 @@ export default function MonthGrid() {
       <View className={`flex-row py-2 border-b ${t.headerBorder} ${t.weekdayBg}`}>
         {["日", "月", "火", "水", "木", "金", "土"].map((w) => (
           <View key={w} className="flex-1 items-center">
-            <Text className={`text-xs ${t.textMuted}`}>{w}</Text>
+            {/* <Text className={`text-xs ${t.textMuted}`}>{w}</Text> */}
+            <Text className={`text-xs text-white`}>{w}</Text>
           </View>
         ))}
       </View>
@@ -87,7 +88,8 @@ export default function MonthGrid() {
                     <Text
                       className={`text-xs ${
                         item.isToday
-                          ? `${t.badgeTodayText} font-bold`
+                          // ? `${t.badgeTodayText} font-bold`
+                          ? `font-bold`
                           : item.isCurrentMonth
                           ? t.text
                           : t.textMuted
@@ -101,9 +103,8 @@ export default function MonthGrid() {
                   {item.events.slice(0, 3).map((e) => {
                     const c = getColorClasses(e.colorId ?? DEFAULT_COLOR_ID);
                     return (
-                      <View key={e.id} className="items-start">
-                        {/* カテゴリ色の背景を持つチップ */}
-                        <View className={`rounded px-1 py-0.5 self-start max-w-full ${c.bg}`}>
+                      <View key={e.id} className="w-full">
+                        <View className={`rounded px-1 py-0.5 ${c.bg}`}>
                           <Text className={`text-[10px] ${c.text}`} numberOfLines={1}>
                             {e.title}
                           </Text>

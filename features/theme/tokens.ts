@@ -64,7 +64,7 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
 
   mist: {
     appBg: 'bg-white',
-    surfaceBg: 'bg-[#f5f9f9]',
+    surfaceBg: 'bg-[#A9CBB8]/15',
     weekdayBg: 'bg-[#9CA99E]',
     // weekdayBg: 'bg-[#dbe6e6]',
     text: 'text-neutral-900',
@@ -79,19 +79,19 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     buttonPrimaryBg: 'bg-[#9CA99E]',
     // buttonPrimaryBg: 'bg-teal-600',
     buttonPrimaryText: 'text-white',
-    buttonNeutralBg: 'bg-[#d5e3e3]',
+    buttonNeutralBg: 'bg-[#c4d69e]/60',
     buttonNeutralText: 'text-neutral-900',
     dangerBg: 'bg-red-600',
     dangerText: 'text-white',
 
-    badgeTodayBg: 'bg-teal-600',
+    badgeTodayBg: 'bg-[#9bc3ab]',
     badgeTodayText: 'text-white',
   },
 
   // ピンク系
   rose: {
     appBg: 'bg-white',
-    surfaceBg: 'bg-[#fffafb]',
+    surfaceBg: 'bg-[#e9c1cf]/20',
     weekdayBg: 'bg-[#D2A7B3]',
     // weekdayBg: 'bg-rose-100',
     text: 'text-rose-950',
@@ -104,14 +104,13 @@ export const THEME_CLASS_TOKENS: Record<Flavor, ThemeClassTokens> = {
     timeText: 'text-rose-600',
 
     buttonPrimaryBg: 'bg-[#D2A7B3]',
-    // buttonPrimaryBg: 'bg-rose-500',
     buttonPrimaryText: 'text-white',
-    buttonNeutralBg: 'bg-rose-100',
+    buttonNeutralBg: 'bg-[#ebd3d1]/70',
     buttonNeutralText: 'text-rose-900',
     dangerBg: 'bg-red-600',
     dangerText: 'text-white',
 
-    badgeTodayBg: 'bg-rose-500',
+    badgeTodayBg: 'bg-[#e9c1cf]',
     badgeTodayText: 'text-white',
   },
 };
