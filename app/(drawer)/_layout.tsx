@@ -1,10 +1,13 @@
 import { DrawerContentScrollView, DrawerItem, DrawerItemList } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
+import { Alert, Linking, Platform } from "react-native";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { useSubscriptionStore } from "../../features/subscription/store";
 
 function CustomDrawerContent(props: any) {
+  const isAndroid = Platform.OS === "android"; // Androidではプレミアム項目を非表示
+  const policyUrl = "https://sites.google.com/view/dotakyanbancho/%E3%83%97%E3%83%A9%E3%82%A4%E3%83%90%E3%82%B7%E3%83%BC%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC";
   return (
     <DrawerContentScrollView {...props}>
       {/* 既定のリスト（ただし day は非表示にしてある） */}
@@ -17,29 +20,46 @@ function CustomDrawerContent(props: any) {
           router.replace("/(drawer)/day");
         }}
       />
-      {/* プレミアム（RevenueCat UI のペイウォールを直接表示） */}
-      <DrawerItem
-        label="プレミアム"
-        onPress={async () => {
-          try {
-            props.navigation.closeDrawer();
-            const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: "premium" });
-            const ok = result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED || result === PAYWALL_RESULT.NOT_PRESENTED;
-            await useSubscriptionStore.getState().refreshFromPurchases();
-            return ok;
-          } catch (e) {
-            console.warn(e)
+      {!isAndroid && (
+        <DrawerItem
+          label="プレミアム"
+          onPress={async () => {
             try {
+              props.navigation.closeDrawer();
+              const result = await RevenueCatUI.presentPaywallIfNeeded({ requiredEntitlementIdentifier: "premium" });
+              const ok = result === PAYWALL_RESULT.PURCHASED || result === PAYWALL_RESULT.RESTORED || result === PAYWALL_RESULT.NOT_PRESENTED;
               await useSubscriptionStore.getState().refreshFromPurchases();
-            } catch {}
-          }
-        }}
-      />
+              return ok;
+            } catch (e) {
+              console.warn(e)
+              try {
+                await useSubscriptionStore.getState().refreshFromPurchases();
+              } catch {}
+            }
+          }}
+        />
+      )}
       <DrawerItem
         label="設定"
         onPress={() => {
           props.navigation.closeDrawer();
           router.push("/(modal)/settings");
+        }}
+      />
+      <DrawerItem
+        label="ポリシー"
+        onPress={async () => {
+          props.navigation.closeDrawer();
+          Alert.alert("外部リンクを開きます", "ブラウザでプライバシーポリシーを開きますか？", [
+            { text: "キャンセル", style: "cancel" },
+            {
+              text: "開く",
+              style: "default",
+              onPress: async () => {
+                await Linking.openURL(policyUrl);
+              },
+            },
+          ]);
         }}
       />
     </DrawerContentScrollView>

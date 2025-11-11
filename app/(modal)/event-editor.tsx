@@ -1,6 +1,6 @@
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams, Stack } from "expo-router";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import ColorPicker from "../../components/common/ColorPicker";
 import { DEFAULT_COLOR_ID } from "../../components/common/colorVariants";
@@ -40,8 +40,7 @@ export default function EventEditor() {
     if (existing?.endAt) return fromUtcIsoToLocalDate(existing.endAt);
     return addMinutes(existing ? fromUtcIsoToLocalDate(existing.startAt) : initialDateStr ? new Date(initialDateStr) : new Date(), 30);
   });
-  const [showStartPicker, setShowStartPicker] = useState(Platform.OS === "ios");
-  const [showEndPicker, setShowEndPicker] = useState(Platform.OS === "ios");
+  const isIos = Platform.OS === "ios";
 
   // アラームパターン（登録済みのみ選択可能）。新規作成時は「タイミングが1件もないカスタム」は非表示。
   const isUsableForNew = (k: PatternKey) => {
@@ -56,6 +55,16 @@ export default function EventEditor() {
       : "default";
   const [patternKey, setPatternKey] = useState<PatternKey>(initialPatternKey);
 
+  const formatDateTimeLabel = (date: Date) =>
+    date.toLocaleString(undefined, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
   // 表示用ラベル（設定画面と同等の見え方）
   const formatOffsetLabel = (m: number) => {
     if (m === 0) return "開始時";
@@ -69,12 +78,36 @@ export default function EventEditor() {
     return `${m}分前`;
   };
 
-  useEffect(() => {
-    if (Platform.OS === "android") {
-      setShowStartPicker(false);
-      setShowEndPicker(false);
-    }
-  }, []);
+  const openAndroidDateTimePicker = (target: "start" | "end") => {
+    if (isIos) return;
+    const current = target === "start" ? start : end;
+    DateTimePickerAndroid.open({
+      value: current,
+      mode: "date",
+      is24Hour: true,
+      onChange: (event, selectedDate) => {
+        if (event.type !== "set" || !selectedDate) return;
+        const pickedDate = new Date(selectedDate);
+        DateTimePickerAndroid.open({
+          value: current,
+          mode: "time",
+          is24Hour: true,
+          onChange: (eventTime, selectedTime) => {
+            if (eventTime.type !== "set" || !selectedTime) return;
+            const next = new Date(pickedDate);
+            next.setHours(selectedTime.getHours(), selectedTime.getMinutes(), 0, 0);
+            if (target === "start") {
+              setStart(next);
+              if (end <= next) setEnd(addMinutes(next, 30));
+            } else {
+              if (next <= start) setEnd(addMinutes(start, 30));
+              else setEnd(next);
+            }
+          },
+        });
+      },
+    });
+  };
 
   const onSave = () => {
     if (!title.trim()) return; // タイトル必須
@@ -111,129 +144,134 @@ export default function EventEditor() {
       {/* ヘッダータイトル：新規作成 or 編集 を動的に切替 */}
       <Stack.Screen options={{ headerTitle: isEdit ? "編集" : "新規作成" }} />
       <ScrollView className={`flex-1 p-4 ${t.surfaceBg}`} contentContainerStyle={{ gap: 16 }}>
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>タイトル（必須）</Text>
-        <TextInput className={`border rounded-md px-3 py-2 ${t.border}`} placeholder="タイトル" value={title} onChangeText={setTitle} />
-      </View>
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>タイトル（必須）</Text>
+          <TextInput className={`border rounded-md px-3 py-2 ${t.border}`} placeholder="タイトル" value={title} onChangeText={setTitle} />
+        </View>
 
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>開始日時</Text>
-        {Platform.OS === "android" ? (
-          <View className="flex-row gap-2">
-            <TouchableOpacity className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => setShowStartPicker(true)}>
-              <Text>{start.toLocaleString()}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {(Platform.OS === "ios" || showStartPicker) && (
-          <DateTimePicker
-            value={start}
-            mode="datetime"
-            onChange={(_, d) => {
-              if (d) {
-                setStart(d);
-                if (end <= d) setEnd(addMinutes(d, 30));
-              }
-              if (Platform.OS === "android") setShowStartPicker(false);
-            }}
-          />
-        )}
-      </View>
-
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>終了日時</Text>
-        {Platform.OS === "android" ? (
-          <View className="flex-row gap-2">
-            <TouchableOpacity className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => setShowEndPicker(true)}>
-              <Text>{end.toLocaleString()}</Text>
-            </TouchableOpacity>
-          </View>
-        ) : null}
-        {(Platform.OS === "ios" || showEndPicker) && (
-          <DateTimePicker
-            value={end}
-            mode="datetime"
-            onChange={(_, d) => {
-              if (d) {
-                if (d <= start) setEnd(addMinutes(start, 30));
-                else setEnd(d);
-              }
-              if (Platform.OS === "android") setShowEndPicker(false);
-            }}
-          />
-        )}
-      </View>
-
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>カテゴリ色</Text>
-        <ColorPicker value={colorId} onChange={setColorId} />
-      </View>
-
-      {/* アラームパターン選択 */}
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>アラームパターン</Text>
-        <View className="flex-row flex-wrap gap-2">
-          {((["default", "A", "B", "C"] as PatternKey[]).filter((k) => (existing ? true : isUsableForNew(k))) as PatternKey[]).map((k) => {
-            const p = patterns[k];
-            const registered = p?.registered;
-            const usable = existing ? !!registered : isUsableForNew(k);
-            const active = patternKey === k && usable;
-            return (
-              <TouchableOpacity
-                key={k}
-                disabled={!usable}
-                onPress={() => usable && setPatternKey(k)}
-                className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""}`}
-              >
-                <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{p?.name ?? k}</Text>
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>開始日時</Text>
+          {!isIos ? (
+            <View className="flex-row gap-2">
+              <TouchableOpacity className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => openAndroidDateTimePicker("start")}>
+                <Text>{formatDateTimeLabel(start)}</Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-        {/* 選択中パターンの内訳（チップ表示） */}
-        <View className="mt-1">
-          <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-            {(patterns[patternKey]?.offsetsMin?.length ?? 0) > 0 ? (
-              patterns[patternKey]!.offsetsMin.map((m) => (
-                <View key={m} className={`px-2 py-1 rounded-md border ${t.border}`}>
-                  <Text className={`${t.text}`}>{formatOffsetLabel(m)}</Text>
-                </View>
-              ))
-            ) : (
-              <Text className={`${t.textMuted}`}>未設定</Text>
-            )}
-          </View>
-        </View>
-        {!existing &&
-          (["A", "B", "C"] as PatternKey[]).some((k) => {
-            const p = patterns[k];
-            return !(p && p.registered && (p.offsetsMin?.length ?? 0) > 0);
-          }) && (
-            <TouchableOpacity className={`self-start mt-1 px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => router.push("/(modal)/settings")}>
-              <Text className={`${t.buttonNeutralText}`}>アラームパターンを編集</Text>
-            </TouchableOpacity>
+            </View>
+          ) : null}
+          {isIos && (
+            <DateTimePicker
+              value={start}
+              mode="datetime"
+              onChange={(_, d) => {
+                if (d) {
+                  setStart(d);
+                  if (end <= d) setEnd(addMinutes(d, 30));
+                }
+              }}
+            />
           )}
-      </View>
+        </View>
 
-      <View className="gap-2">
-        <Text className={`text-sm ${t.textMuted}`}>メモ</Text>
-        <TextInput className={`border rounded-md px-3 py-2 h-24 ${t.border}`} placeholder="メモを入力" value={memo} onChangeText={setMemo} multiline />
-      </View>
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>終了日時</Text>
+          {!isIos ? (
+            <View className="flex-row gap-2">
+              <TouchableOpacity className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => openAndroidDateTimePicker("end")}>
+                <Text>{formatDateTimeLabel(end)}</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
+          {isIos && (
+            <DateTimePicker
+              value={end}
+              mode="datetime"
+              onChange={(_, d) => {
+                if (d) {
+                  if (d <= start) setEnd(addMinutes(start, 30));
+                  else setEnd(d);
+                }
+              }}
+            />
+          )}
+        </View>
 
-      <View className="flex-row gap-4 mt-4">
-        {existing ? (
-          <TouchableOpacity className={`px-4 py-2 rounded-md ${t.dangerBg}`} onPress={confirmDelete}>
-            <Text className={`${t.dangerText} font-semibold`}>削除</Text>
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>カテゴリ色</Text>
+          <ColorPicker value={colorId} onChange={setColorId} />
+        </View>
+
+        {/* アラームパターン選択 */}
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>アラームパターン</Text>
+          <View className="flex-row flex-wrap gap-2">
+            {((["default", "A", "B", "C"] as PatternKey[]).filter((k) => (existing ? true : isUsableForNew(k))) as PatternKey[]).map((k) => {
+              const p = patterns[k];
+              const registered = p?.registered;
+              const usable = existing ? !!registered : isUsableForNew(k);
+              const active = patternKey === k && usable;
+              return (
+                <TouchableOpacity
+                  key={k}
+                  disabled={!usable}
+                  onPress={() => usable && setPatternKey(k)}
+                  className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""}`}
+                >
+                  <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{p?.name ?? k}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          {/* 選択中パターンの内訳（チップ表示） */}
+          <View className="mt-1">
+            <View className="flex-row flex-wrap" style={{ gap: 8 }}>
+              {(patterns[patternKey]?.offsetsMin?.length ?? 0) > 0 ? (
+                patterns[patternKey]!.offsetsMin.map((m) => (
+                  <View key={m} className={`px-2 py-1 rounded-md border ${t.border}`}>
+                    <Text className={`${t.text}`}>{formatOffsetLabel(m)}</Text>
+                  </View>
+                ))
+              ) : (
+                <Text className={`${t.textMuted}`}>未設定</Text>
+              )}
+            </View>
+          </View>
+          {!existing &&
+            (["A", "B", "C"] as PatternKey[]).some((k) => {
+              const p = patterns[k];
+              return !(p && p.registered && (p.offsetsMin?.length ?? 0) > 0);
+            }) && (
+              <TouchableOpacity className={`self-start mt-1 px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => router.push("/(modal)/settings")}>
+                <Text className={`${t.buttonNeutralText}`}>アラームパターンを編集</Text>
+              </TouchableOpacity>
+            )}
+        </View>
+
+        <View className="gap-2">
+          <Text className={`text-sm ${t.textMuted}`}>メモ</Text>
+          <TextInput
+            className={`border rounded-md px-3 py-2 h-24 ${t.border}`}
+            style={{ textAlignVertical: "top" }}
+            placeholder="メモを入力"
+            value={memo}
+            onChangeText={setMemo}
+            multiline
+          />
+        </View>
+
+        <View className="flex-row gap-4 mt-4">
+          {existing ? (
+            <TouchableOpacity className={`px-4 py-2 rounded-md ${t.dangerBg}`} onPress={confirmDelete}>
+              <Text className={`${t.dangerText} font-semibold`}>削除</Text>
+            </TouchableOpacity>
+          ) : null}
+          <View className="flex-1" />
+          <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => router.back()}>
+            <Text className={`${t.buttonNeutralText} font-semibold`}>キャンセル</Text>
           </TouchableOpacity>
-        ) : null}
-        <View className="flex-1" />
-        <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={() => router.back()}>
-          <Text className={`${t.buttonNeutralText} font-semibold`}>キャンセル</Text>
-        </TouchableOpacity>
-        <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={onSave}>
-          <Text className={`${t.buttonPrimaryText} font-semibold`}>保存</Text>
-        </TouchableOpacity>
-      </View>
+          <TouchableOpacity className={`px-4 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={onSave}>
+            <Text className={`${t.buttonPrimaryText} font-semibold`}>保存</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </>
   );

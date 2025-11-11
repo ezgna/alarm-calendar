@@ -4,7 +4,8 @@
 // - 単発スケジュールと取消（iOSは NotificationContent.sound に 'default' または同梱ファイル名を指定）
 
 import * as Notifications from "expo-notifications";
-import { resolveIosSound, type SoundId } from "./sounds";
+import { Platform } from "react-native";
+import { resolveIosSound, SOUND_CATALOG, type SoundId } from "./sounds";
 
 const DBG = typeof __DEV__ !== "undefined" ? __DEV__ : true;
 const log = (...args: any[]) => {
@@ -14,6 +15,41 @@ const log = (...args: any[]) => {
 };
 
 let initialized = false;
+let androidChannelsPrepared = false;
+
+const ANDROID_CHANNELS: Record<SoundId, { id: string; name: string; sound: string | null }> = {
+  default: { id: "reminder-default", name: "リマインダー（既定）", sound: null },
+  ding: { id: "reminder-ding", name: "リマインダー（ディング）", sound: SOUND_CATALOG.ding },
+  phoneRingtone: { id: "reminder-phone", name: "リマインダー（クラシックベル）", sound: SOUND_CATALOG.phoneRingtone },
+  refreshingWakeup: { id: "reminder-refreshing", name: "リマインダー（さわやか）", sound: SOUND_CATALOG.refreshingWakeup },
+  smartphoneRingtone: { id: "reminder-smartphone", name: "リマインダー（スマホ着信）", sound: SOUND_CATALOG.smartphoneRingtone },
+  telephoneRingtone: { id: "reminder-telephone", name: "リマインダー（黒電話）", sound: SOUND_CATALOG.telephoneRingtone },
+};
+
+const resolveAndroidChannelId = (soundId?: SoundId) => {
+  if (!soundId) return ANDROID_CHANNELS.default.id;
+  return ANDROID_CHANNELS[soundId]?.id ?? ANDROID_CHANNELS.default.id;
+};
+
+async function ensureAndroidChannels() {
+  if (androidChannelsPrepared || Platform.OS !== "android") return;
+  androidChannelsPrepared = true;
+  const entries = Object.values(ANDROID_CHANNELS);
+  await Promise.all(
+    entries.map((channel) =>
+      Notifications.setNotificationChannelAsync(channel.id, {
+        name: channel.name,
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: channel.sound ?? "default",
+        enableVibrate: true,
+        enableLights: true,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: "#FFFFFFFF",
+      })
+    )
+  );
+  log("android channels prepared", entries.map((c) => c.id));
+}
 
 export function initializeNotifications() {
   if (initialized) return;
@@ -28,6 +64,7 @@ export function initializeNotifications() {
     }),
   });
   log("initialized handler (alert + sound in foreground)");
+  ensureAndroidChannels().catch(() => {});
 }
 
 export async function ensurePermissions(): Promise<boolean> {
@@ -61,13 +98,19 @@ export async function scheduleOnce(params: {
     }
 
     // iOS: 'default' か 'xxx.wav'（パスなし）のどちらかを渡す
+    if (Platform.OS === "android") {
+      await ensureAndroidChannels();
+    }
+
     const iosSound = resolveIosSound(params.soundId);
+    const channelId = resolveAndroidChannelId(params.soundId);
 
     log("scheduleOnce request", {
       atISO: new Date(at).toISOString(),
       title: params.title,
       body: params.body,
       sound: iosSound,
+      channelId,
     });
 
     const id = await Notifications.scheduleNotificationAsync({
@@ -80,6 +123,7 @@ export async function scheduleOnce(params: {
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
         date: params.date,
+        channelId,
       },
     });
 

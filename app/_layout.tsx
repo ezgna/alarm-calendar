@@ -12,6 +12,7 @@ import { getTrackingPermissionsAsync, PermissionStatus, requestTrackingPermissio
 import mobileAds from "react-native-google-mobile-ads";
 import { setConsent } from "@/lib/ads/consent";
 import { useAdsStore } from "@/features/ads/store";
+import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
@@ -81,6 +82,7 @@ export default function RootLayout() {
         <Stack.Screen name="(drawer)" />
         <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
       </Stack>
+      <StatusBar style="dark" />
     </GestureHandlerRootView>
   );
 }

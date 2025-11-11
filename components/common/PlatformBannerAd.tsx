@@ -8,6 +8,7 @@ const PlatformBannerAd = () => {
   const showBanner = useAdsStore((s) => s.showBanner);
   const adsRemoved = useAdsStore((s) => s.adsRemoved);
   const adsReady = useAdsStore((s) => s.adsReady);
+  const isAndroid = Platform.OS === "android";
 
   const BANNER_AD_UNIT_ID = __DEV__
     ? TestIds.ADAPTIVE_BANNER
@@ -21,6 +22,9 @@ const PlatformBannerAd = () => {
   const bannerKey = requestOptions.requestNonPersonalizedAdsOnly ? 'npa' : 'pa';
 
   // 表示しない条件では描画しない（広告リクエストを抑止）
+  // Androidでは審査前につき強制的に非表示
+  if (isAndroid) return null;
+
   if (!showBanner || adsRemoved || !adsReady) return null;
 
   return (

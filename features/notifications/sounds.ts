@@ -9,10 +9,10 @@ export type SoundId =
 // ファイル名は app.json の expo-notifications.sounds に登録したものと一致させる
 export const SOUND_CATALOG: Record<Exclude<SoundId, 'default'>, string> = {
   ding: 'ding.wav',
-  phoneRingtone: 'phone-ringtone.wav',
+  phoneRingtone: 'phone_ringtone.wav',
   refreshingWakeup: 'refreshing_wakeup.wav',
-  smartphoneRingtone: 'smartphone-ringtone.wav',
-  telephoneRingtone: 'telephone-ringtone.wav',
+  smartphoneRingtone: 'smartphone_ringtone.wav',
+  telephoneRingtone: 'telephone_ringtone.wav',
 };
 
 // iOS: NotificationContent.sound へ渡す値を解決

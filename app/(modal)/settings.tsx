@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, Button, Keyboard, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { ActivityIndicator, Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { PatternKey, useNotificationStore } from "../../features/notifications/store";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
 import { usePreferencesStore } from "../../features/preferences/store";
@@ -10,18 +10,25 @@ import { useThemeTokens } from "../../features/theme/useTheme";
 
 export default function Settings() {
   const { t } = useThemeTokens();
+  const isSubscriptionDisabled = Platform.OS === "android"; // Androidでは課金機能を無効化
   const flavor = useThemeStore((s) => s.flavor);
   const setFlavor = useThemeStore((s) => s.setFlavor);
   const dayTapBehavior = usePreferencesStore((s) => s.dayTapBehavior);
   const setDayTapBehavior = usePreferencesStore((s) => s.setDayTapBehavior);
   const patterns = useNotificationStore((s) => s.patterns);
   const savePattern = useNotificationStore((s) => s.savePattern);
-  const isPremium = useSubscriptionStore((s) => s.isPremium);
-  const busy = useSubscriptionStore((s) => s.busy);
-  const lastMessage = useSubscriptionStore((s) => s.lastMessage);
-  const refreshFromPurchases = useSubscriptionStore((s) => s.refreshFromPurchases);
-  const purchaseDefaultPackage = useSubscriptionStore((s) => s.purchaseDefaultPackage);
-  const restore = useSubscriptionStore((s) => s.restore);
+  const rawIsPremium = useSubscriptionStore((s) => s.isPremium);
+  const rawBusy = useSubscriptionStore((s) => s.busy);
+  const rawLastMessage = useSubscriptionStore((s) => s.lastMessage);
+  const rawRefreshFromPurchases = useSubscriptionStore((s) => s.refreshFromPurchases);
+  const rawPurchaseDefaultPackage = useSubscriptionStore((s) => s.purchaseDefaultPackage);
+  const rawRestore = useSubscriptionStore((s) => s.restore);
+  const isPremium = isSubscriptionDisabled ? false : rawIsPremium;
+  const busy = isSubscriptionDisabled ? false : rawBusy;
+  const lastMessage = isSubscriptionDisabled ? "" : rawLastMessage;
+  const refreshFromPurchases = isSubscriptionDisabled ? () => {} : rawRefreshFromPurchases;
+  const purchaseDefaultPackage = isSubscriptionDisabled ? () => {} : rawPurchaseDefaultPackage;
+  const restore = isSubscriptionDisabled ? () => {} : rawRestore;
   const [editing, setEditing] = useState<PatternKey | null>(null);
   const [name, setName] = useState("");
   // 通知タイミング（分）の選択肢（最大5件）
@@ -121,29 +128,31 @@ export default function Settings() {
             </View>
           </View>
 
-          {/* サブスクリプション（RevenueCat）テスト */}
-          <View style={{ gap: 8 }}>
-            <Text className={`${t.textMuted}`}>サブスクリプション（テスト）</Text>
-            <View className="flex-row items-center" style={{ gap: 12 }}>
-              <View className="px-2 py-1 rounded-md border" style={{ borderColor: "#e5e7eb" }}>
-                <Text className={`${t.text}`}>現在: {isPremium ? "Premium" : "Free"}</Text>
+          {!isSubscriptionDisabled && (
+            <View style={{ gap: 8 }}>
+              {/* サブスクリプション（RevenueCat）テスト */}
+              <Text className={`${t.textMuted}`}>サブスクリプション（テスト）</Text>
+              <View className="flex-row items-center" style={{ gap: 12 }}>
+                <View className="px-2 py-1 rounded-md border" style={{ borderColor: "#e5e7eb" }}>
+                  <Text className={`${t.text}`}>現在: {isPremium ? "Premium" : "Free"}</Text>
+                </View>
+                {busy && <ActivityIndicator />}
               </View>
-              {busy && <ActivityIndicator />}
+              {lastMessage && <Text className={`${t.textMuted}`}>{lastMessage}</Text>}
+              <View className="flex-row flex-wrap" style={{ gap: 12 }}>
+                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={purchaseDefaultPackage}>
+                  <Text className={`${t.buttonPrimaryText}`}>購入テスト</Text>
+                </TouchableOpacity>
+                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={refreshFromPurchases}>
+                  <Text className={`${t.buttonNeutralText}`}>権限を更新</Text>
+                </TouchableOpacity>
+                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={restore}>
+                  <Text className={`${t.buttonNeutralText}`}>購入を復元</Text>
+                </TouchableOpacity>
+              </View>
+              <Text className={`${t.textMuted}`}>テスト中: RevenueCatテストキーでiOSを構成（app/_layout.tsx）。</Text>
             </View>
-            {lastMessage && <Text className={`${t.textMuted}`}>{lastMessage}</Text>}
-            <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-              <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={purchaseDefaultPackage}>
-                <Text className={`${t.buttonPrimaryText}`}>購入テスト</Text>
-              </TouchableOpacity>
-              <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={refreshFromPurchases}>
-                <Text className={`${t.buttonNeutralText}`}>権限を更新</Text>
-              </TouchableOpacity>
-              <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={restore}>
-                <Text className={`${t.buttonNeutralText}`}>購入を復元</Text>
-              </TouchableOpacity>
-            </View>
-            <Text className={`${t.textMuted}`}>テスト中: RevenueCatテストキーでiOSを構成（app/_layout.tsx）。</Text>
-          </View>
+          )}
 
           {/* 月カレンダーのタップ挙動 */}
           <View style={{ gap: 8 }}>
