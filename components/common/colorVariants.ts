@@ -1,19 +1,19 @@
 // NativeWind の className をリテラルで保持するカラー・バリアント定義
 
 // 新しいカテゴリ色（6色）
-export type ColorId = 'roseGray' | 'blush' | 'wisteria' | 'blueGray' | 'sage' | 'almond';
+export type ColorId = 'pink' | 'orange' | 'cream' | 'blue' | 'green' | 'yellow';
 
-// 既定色はブルーグレー
-export const DEFAULT_COLOR_ID: ColorId = 'blueGray';
+// 既定色はブルー系
+export const DEFAULT_COLOR_ID: ColorId = 'blue';
 
 // 画面表示用の短い日本語ラベル
 export const COLOR_LABELS: Record<ColorId, string> = {
-  roseGray: 'ローズグレー',
-  blush: 'ブラッシュ',
-  wisteria: 'ライラック',
-  blueGray: 'ブルーグレー',
-  sage: 'セージ',
-  almond: 'アーモンド',
+  pink: 'ピンク',
+  orange: 'オレンジ',
+  cream: 'クリーム',
+  blue: 'ブルー',
+  green: 'グリーン',
+  yellow: 'イエロー',
 };
 
 // Tailwind 任意値クラス（bg-[#HEX] など）をリテラルで列挙し、パージ対象に検出させる
@@ -21,35 +21,52 @@ export const COLOR_VARIANTS: Record<
   ColorId,
   { bg: string; text: string; border?: string; dot: string }
 > = {
-  roseGray: { bg: 'bg-[#C19F9F]', text: 'text-black', border: 'border-[#B59292]', dot: 'bg-[#C19F9F]' },
-  blush: { bg: 'bg-[#E8B4B4]', text: 'text-black', border: 'border-[#D09D9D]', dot: 'bg-[#E8B4B4]' },
-  wisteria: { bg: 'bg-[#A58FAB]', text: 'text-black', border: 'border-[#927A98]', dot: 'bg-[#A58FAB]' },
-  blueGray: { bg: 'bg-[#778899]', text: 'text-black', border: 'border-[#6B7A89]', dot: 'bg-[#778899]' },
-  sage: { bg: 'bg-[#A9BA8E]', text: 'text-black', border: 'border-[#94A677]', dot: 'bg-[#A9BA8E]' },
-  almond: { bg: 'bg-[#D2BA89]', text: 'text-black', border: 'border-[#C0A873]', dot: 'bg-[#D2BA89]' },
+  pink: { bg: 'bg-[#E1B7CF]', text: 'text-black', border: 'border-[#E1B7CF]', dot: 'bg-[#E1B7CF]' },
+  orange: { bg: 'bg-[#F4CFA9]', text: 'text-black', border: 'border-[#F4CFA9]', dot: 'bg-[#F4CFA9]' },
+  cream: { bg: 'bg-[#F9ECE3]', text: 'text-black', border: 'border-[#F9ECE3]', dot: 'bg-[#F9ECE3]' },
+  blue: { bg: 'bg-[#9DC1D7]', text: 'text-black', border: 'border-[#9DC1D7]', dot: 'bg-[#9DC1D7]' },
+  green: { bg: 'bg-[#C4D69E]', text: 'text-black', border: 'border-[#C4D69E]', dot: 'bg-[#C4D69E]' },
+  yellow: { bg: 'bg-[#F3E8B2]', text: 'text-black', border: 'border-[#F3E8B2]', dot: 'bg-[#F3E8B2]' },
 };
 
+const LEGACY_COLOR_MAP: Record<string, ColorId> = {
+  roseGray: 'pink',
+  blush: 'orange',
+  wisteria: 'cream',
+  purple: 'cream',
+  blueGray: 'blue',
+  sage: 'green',
+  almond: 'yellow',
+};
+
+function resolveColorId(id?: string): ColorId {
+  const key = id as ColorId | undefined;
+  if (key && COLOR_VARIANTS[key]) return key;
+  if (id && LEGACY_COLOR_MAP[id]) return LEGACY_COLOR_MAP[id];
+  return DEFAULT_COLOR_ID;
+}
+
 export function getColorClasses(id?: string) {
-  const key = (id as ColorId) ?? DEFAULT_COLOR_ID;
-  return COLOR_VARIANTS[key] ?? COLOR_VARIANTS[DEFAULT_COLOR_ID];
+  const key = resolveColorId(id);
+  return COLOR_VARIANTS[key];
 }
 
 // Picker 表示順
-export const COLOR_IDS: ColorId[] = ['roseGray', 'blush', 'wisteria', 'blueGray', 'sage', 'almond'];
+export const COLOR_IDS: ColorId[] = ['pink', 'orange', 'cream', 'blue', 'green', 'yellow'];
 
 // style 用の HEX 値（テキストは全色黒）
 export type ColorHex = { bg: string; text: string; border: string };
 
 export const COLOR_HEX: Record<ColorId, ColorHex> = {
-  roseGray: { bg: '#C19F9F', text: '#000000', border: '#B59292' },
-  blush: { bg: '#E8B4B4', text: '#000000', border: '#D09D9D' },
-  wisteria: { bg: '#A58FAB', text: '#000000', border: '#927A98' },
-  blueGray: { bg: '#778899', text: '#000000', border: '#6B7A89' },
-  sage: { bg: '#A9BA8E', text: '#000000', border: '#94A677' },
-  almond: { bg: '#D2BA89', text: '#000000', border: '#C0A873' },
+  pink: { bg: '#E1B7CF', text: '#000000', border: '#E1B7CF' },
+  orange: { bg: '#F4CFA9', text: '#000000', border: '#F4CFA9' },
+  cream: { bg: '#F9ECE3', text: '#000000', border: '#F9ECE3' },
+  blue: { bg: '#9DC1D7', text: '#000000', border: '#9DC1D7' },
+  green: { bg: '#C4D69E', text: '#000000', border: '#C4D69E' },
+  yellow: { bg: '#F3E8B2', text: '#000000', border: '#F3E8B2' },
 };
 
 export function getColorHex(id?: string): ColorHex {
-  const key = (id as ColorId) ?? DEFAULT_COLOR_ID;
-  return COLOR_HEX[key] ?? COLOR_HEX[DEFAULT_COLOR_ID];
+  const key = resolveColorId(id);
+  return COLOR_HEX[key];
 }

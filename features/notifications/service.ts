@@ -45,7 +45,7 @@ export async function scheduleOnce(params: {
   date: Date;
   title: string;
   body?: string;
-  soundId?: SoundId; // ← 追加：'default' | 'beep' | 'brightUpbeat' | 'classic' | 'magical' | 'refreshingWakeup'
+  soundId?: SoundId; // ← 追加：'default' | 'ding' | 'phoneRingtone' | 'refreshingWakeup' | 'smartphoneRingtone' | 'telephoneRingtone'
 }): Promise<string | null> {
   try {
     const now = Date.now();

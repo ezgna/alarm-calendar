@@ -1,18 +1,18 @@
 export type SoundId =
   | 'default'
-  | 'beep'
-  | 'brightUpbeat'
-  | 'classic'
-  | 'magical'
-  | 'refreshingWakeup';
+  | 'ding'
+  | 'phoneRingtone'
+  | 'refreshingWakeup'
+  | 'smartphoneRingtone'
+  | 'telephoneRingtone';
 
 // ファイル名は app.json の expo-notifications.sounds に登録したものと一致させる
 export const SOUND_CATALOG: Record<Exclude<SoundId, 'default'>, string> = {
-  beep: 'beep.wav',
-  brightUpbeat: 'bright_upbeat.wav',
-  classic: 'classic.wav',
-  magical: 'magical.wav',
+  ding: 'ding.wav',
+  phoneRingtone: 'phone-ringtone.wav',
   refreshingWakeup: 'refreshing_wakeup.wav',
+  smartphoneRingtone: 'smartphone-ringtone.wav',
+  telephoneRingtone: 'telephone-ringtone.wav',
 };
 
 // iOS: NotificationContent.sound へ渡す値を解決
@@ -25,9 +25,9 @@ export const resolveIosSound = (id?: SoundId): string => {
 // UI用の選択肢（表示名はお好みで）
 export const SOUND_OPTIONS: { id: SoundId; label: string }[] = [
   { id: 'default',          label: 'デフォルト' },
-  { id: 'beep',             label: 'ビープ' },
-  { id: 'brightUpbeat',     label: 'アップビート' },
-  { id: 'classic',          label: 'クラシック' },
-  { id: 'magical',          label: 'マジカル' },
+  { id: 'ding',             label: 'ディング' },
+  { id: 'phoneRingtone',    label: 'クラシックベル' },
+  { id: 'smartphoneRingtone', label: 'スマホ着信' },
+  { id: 'telephoneRingtone', label: '黒電話' },
   { id: 'refreshingWakeup', label: 'さわやか' },
 ];

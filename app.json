@@ -42,11 +42,11 @@
         "expo-notifications",
         {
           "sounds": [
-            "./assets/sounds/beep.wav",
-            "./assets/sounds/bright_upbeat.wav",
-            "./assets/sounds/classic.wav",
-            "./assets/sounds/magical.wav",
-            "./assets/sounds/refreshing_wakeup.wav"
+            "./assets/sounds/ding.wav",
+            "./assets/sounds/phone-ringtone.wav",
+            "./assets/sounds/refreshing_wakeup.wav",
+            "./assets/sounds/smartphone-ringtone.wav",
+            "./assets/sounds/telephone-ringtone.wav"
           ]
         }
       ],
