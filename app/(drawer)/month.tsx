@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import Header from '../../components/common/Header';
 import MonthGrid from '../../components/calendar/MonthGrid';
 import { useCalendarStore } from '../../features/calendar/store';
@@ -7,6 +7,7 @@ import PagedView from '../../components/common/PagedView';
 import { router } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
 import { useThemeTokens } from '../../features/theme/useTheme';
+import DaySheet from '../../components/sheet/DaySheet';
 
 function formatTitle(date: Date) {
   return `${date.getFullYear()}年 ${date.getMonth() + 1}月`;
@@ -19,12 +20,27 @@ export default function Month() {
   const goToday = useCalendarStore((s) => s.goToday);
   const setView = useCalendarStore((s) => s.setView);
   const date = new Date(currentIso);
+  const [activeDate, setActiveDate] = useState<Date | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       setView('month');
     }, [setView])
   );
+
+  const handleSelectDate = useCallback((d: Date) => {
+    setActiveDate(d);
+    setSheetVisible(true);
+  }, []);
+
+  const handleRequestClose = useCallback(() => {
+    setSheetVisible(false);
+  }, []);
+
+  const handleSheetClosed = useCallback(() => {
+    setActiveDate(null);
+  }, []);
 
   return (
     <View className={`flex-1 ${t.appBg}`}>
@@ -36,8 +52,9 @@ export default function Month() {
         onAdd={() => router.push({ pathname: '/(modal)/event-editor', params: { date: new Date().toISOString() } })}
       />
       <PagedView onPage={(d) => page(d)}>
-        <MonthGrid />
+        <MonthGrid onSelectDate={handleSelectDate} />
       </PagedView>
+      <DaySheet visible={sheetVisible} date={activeDate} onRequestClose={handleRequestClose} onClosed={handleSheetClosed} />
     </View>
   );
 }

@@ -8,7 +8,11 @@ import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
 import { useThemeTokens } from "../../features/theme/useTheme";
 import PlatformBannerAd from "../common/PlatformBannerAd";
 
-export default function MonthGrid() {
+type Props = {
+  onSelectDate?: (date: Date) => void;
+};
+
+export default function MonthGrid({ onSelectDate }: Props) {
   const { t } = useThemeTokens();
   const [gridHeight, setGridHeight] = useState(0);
   const cell = gridHeight > 0 ? Math.floor(gridHeight / 6) : 0;
@@ -58,10 +62,9 @@ export default function MonthGrid() {
               className={`flex-1 p-1 ${index >= data.length - 7 ? '' : 'border-b'} border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
               style={{ height: cell || undefined }}
               onPress={() => {
-                const now = new Date();
                 const d = new Date(item.date);
-                d.setHours(now.getHours(), now.getMinutes(), 0, 0);
-                router.push({ pathname: "/(modal)/event-editor", params: { date: d.toISOString() } });
+                d.setHours(0, 0, 0, 0);
+                onSelectDate?.(d);
               }}
               onLongPress={() => {
                 const d = new Date(item.date);
