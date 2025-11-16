@@ -1,9 +1,9 @@
 {
   "ios": {
-    "CFBundleDisplayName": "ドタキャン番長",
-    "CFBundleName": "ドタキャン番長"
+    "CFBundleDisplayName": "神アラーム",
+    "CFBundleName": "神アラーム"
   },
   "android": {
-    "app_name": "ドタキャン番長"
+    "app_name": "神アラーム"
   }
 }
