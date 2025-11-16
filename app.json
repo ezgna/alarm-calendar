@@ -119,7 +119,8 @@
             "3qcr597p9d.skadnetwork"
           ]
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,8 +1,9 @@
 import { router } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { PatternKey, useNotificationStore } from "../../features/notifications/store";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
+import { useSoundPreview } from "../../features/notifications/useSoundPreview";
 import { usePreferencesStore } from "../../features/preferences/store";
 import { useSubscriptionStore } from "../../features/subscription/store";
 import { useThemeStore } from "../../features/theme/store";
@@ -35,6 +36,7 @@ export default function Settings() {
   const [offsetList, setOffsetList] = useState<number[]>([]);
   // サウンド（iOS）
   const [soundId, setSoundId] = useState<SoundId>("default");
+  const { state: previewState, playPreview, stopPreview } = useSoundPreview();
   // カスタム追加用の簡易入力（X時間 Y分）
   const [showCustom, setShowCustom] = useState(false);
   const [customHour, setCustomHour] = useState<string>("0");
@@ -52,6 +54,12 @@ export default function Settings() {
     savePattern(editing, { name: name || patterns[editing].name, offsetsMin: offsetList, soundId });
     setEditing(null);
   };
+
+  useEffect(() => {
+    if (!editing) {
+      stopPreview();
+    }
+  }, [editing, stopPreview]);
 
   // よく使う候補（分単位）
   const QUICK_CHOICES: number[] = useMemo(
@@ -215,7 +223,14 @@ export default function Settings() {
                             return (
                               <TouchableOpacity
                                 key={opt.id}
-                                onPress={() => setSoundId(opt.id)}
+                                onPress={() => {
+                                  setSoundId(opt.id);
+                                  if (opt.previewable) {
+                                    playPreview(opt.id);
+                                  } else {
+                                    stopPreview();
+                                  }
+                                }}
                                 className={`px-3 py-1 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""}`}
                               >
                                 <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{opt.label}</Text>
@@ -223,6 +238,12 @@ export default function Settings() {
                             );
                           })}
                         </View>
+                        {previewState.status === "error" && (
+                          <View className="gap-1">
+                            {previewState.error === "playback" && <Text className="text-xs text-red-500">サウンドの再生に失敗しました。音量やサイレントモードをご確認ください。</Text>}
+                            {previewState.error === "audio-mode" && <Text className="text-xs text-red-500">サウンドモードの初期化に失敗しました。アプリを再起動してやり直してください。</Text>}
+                          </View>
+                        )}
                       </View>
                       <View className="gap-1.5">
                         <Text className={`${t.text} font-bold`}>タイミング</Text>
