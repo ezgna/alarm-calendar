@@ -1,10 +1,9 @@
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
-import { PatternKey, useNotificationStore } from "../../features/notifications/store";
+import { PatternKey, PATTERN_KEYS, useNotificationStore } from "../../features/notifications/store";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
 import { useSoundPreview } from "../../features/notifications/useSoundPreview";
-import { usePreferencesStore } from "../../features/preferences/store";
 import { useSubscriptionStore } from "../../features/subscription/store";
 import { useThemeStore } from "../../features/theme/store";
 import { useThemeTokens } from "../../features/theme/useTheme";
@@ -14,8 +13,6 @@ export default function Settings() {
   const isSubscriptionDisabled = Platform.OS === "android"; // Androidでは課金機能を無効化
   const flavor = useThemeStore((s) => s.flavor);
   const setFlavor = useThemeStore((s) => s.setFlavor);
-  const dayTapBehavior = usePreferencesStore((s) => s.dayTapBehavior);
-  const setDayTapBehavior = usePreferencesStore((s) => s.setDayTapBehavior);
   const patterns = useNotificationStore((s) => s.patterns);
   const savePattern = useNotificationStore((s) => s.savePattern);
   const rawIsPremium = useSubscriptionStore((s) => s.isPremium);
@@ -162,35 +159,10 @@ export default function Settings() {
             </View>
           )}
 
-          {/* 月カレンダーのタップ挙動 */}
-          <View style={{ gap: 8 }}>
-            <Text className={`${t.textMuted}`}>月カレンダーのタップ挙動</Text>
-            <View className="flex-row gap-4">
-              {(
-                [
-                  { key: "openDay", label: "日画面を開く" },
-                  { key: "openNewModal", label: "新規作成を開く" },
-                ] as const
-              ).map((opt) => {
-                const active = dayTapBehavior === opt.key;
-                return (
-                  <TouchableOpacity
-                    key={opt.key}
-                    onPress={() => setDayTapBehavior(opt.key as any)}
-                    className={`px-3 py-2 rounded-md border ${t.border} ${active ? t.buttonPrimaryBg : ""}`}
-                  >
-                    <Text className={`${active ? t.buttonPrimaryText : t.text}`}>{opt.label}</Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-            <Text className={`${t.textMuted}`}>長押しは常に「新規作成」を開きます。</Text>
-          </View>
-
           {/* アラームパターン */}
           <View style={{ gap: 8 }}>
             <Text className={`${t.textMuted}`}>アラームパターン</Text>
-            {(["default", "A", "B", "C"] as PatternKey[]).map((k) => {
+            {PATTERN_KEYS.map((k) => {
               const p = patterns[k];
               const isEditing = editing === k;
               const isDefault = k === "default";

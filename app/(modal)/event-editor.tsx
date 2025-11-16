@@ -7,7 +7,7 @@ import { DEFAULT_COLOR_ID } from "../../components/common/colorVariants";
 import { useEventStore } from "../../features/events/store";
 import { addMinutes, fromUtcIsoToLocalDate, toUtcIsoString } from "../../lib/date";
 import { useThemeTokens } from "../../features/theme/useTheme";
-import { useNotificationStore, PatternKey } from "../../features/notifications/store";
+import { useNotificationStore, PatternKey, PATTERN_KEYS, CUSTOM_PATTERN_KEYS } from "../../features/notifications/store";
 
 export default function EventEditor() {
   const { t } = useThemeTokens();
@@ -172,6 +172,8 @@ export default function EventEditor() {
           )}
         </View>
 
+        {/*
+          終了日時フィールド（将来再度表示したくなったらこのブロックのコメントを解除）
         <View className="gap-2">
           <Text className={`text-sm ${t.textMuted}`}>終了日時</Text>
           {!isIos ? (
@@ -194,6 +196,7 @@ export default function EventEditor() {
             />
           )}
         </View>
+        */}
 
         <View className="gap-2">
           <Text className={`text-sm ${t.textMuted}`}>カテゴリ色</Text>
@@ -204,7 +207,7 @@ export default function EventEditor() {
         <View className="gap-2">
           <Text className={`text-sm ${t.textMuted}`}>アラームパターン</Text>
           <View className="flex-row flex-wrap gap-2">
-            {((["default", "A", "B", "C"] as PatternKey[]).filter((k) => (existing ? true : isUsableForNew(k))) as PatternKey[]).map((k) => {
+            {PATTERN_KEYS.filter((k) => (existing ? true : isUsableForNew(k))).map((k) => {
               const p = patterns[k];
               const registered = p?.registered;
               const usable = existing ? !!registered : isUsableForNew(k);
@@ -236,7 +239,7 @@ export default function EventEditor() {
             </View>
           </View>
           {!existing &&
-            (["A", "B", "C"] as PatternKey[]).some((k) => {
+            CUSTOM_PATTERN_KEYS.some((k) => {
               const p = patterns[k];
               return !(p && p.registered && (p.offsetsMin?.length ?? 0) > 0);
             }) && (

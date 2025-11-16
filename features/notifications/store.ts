@@ -10,7 +10,10 @@ import type { SoundId } from './sounds';
 import { fromUtcIsoToLocalDate } from '../../lib/date';
 
 // パターンキー
-export type PatternKey = 'default' | 'A' | 'B' | 'C';
+export type PatternKey = 'default' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
+
+export const PATTERN_KEYS: PatternKey[] = ['default', 'A', 'B', 'C', 'D', 'E', 'F'];
+export const CUSTOM_PATTERN_KEYS: PatternKey[] = PATTERN_KEYS.filter((k) => k !== 'default') as PatternKey[];
 
 // パターン定義
 export type PatternDef = {
@@ -58,6 +61,9 @@ function defaultPatterns(): Record<PatternKey, PatternDef> {
     A: { name: 'カスタム1', offsetsMin: [], registered: false, soundId: 'default' },
     B: { name: 'カスタム2', offsetsMin: [], registered: false, soundId: 'default' },
     C: { name: 'カスタム3', offsetsMin: [], registered: false, soundId: 'default' },
+    D: { name: 'カスタム4', offsetsMin: [], registered: false, soundId: 'default' },
+    E: { name: 'カスタム5', offsetsMin: [], registered: false, soundId: 'default' },
+    F: { name: 'カスタム6', offsetsMin: [], registered: false, soundId: 'default' },
   } as const;
 }
 
@@ -177,7 +183,7 @@ export const useNotificationStore = create<State & Actions>()(
       },
     }),
     {
-      name: 'notification-store-v3',
+      name: 'notification-store-v1',
       storage: createJSONStorage(() => mmkvStorage),
       partialize: (s) => ({
         scheduledByEventId: s.scheduledByEventId,

@@ -6,7 +6,6 @@ import { useEventStore } from "../../features/events/store";
 import { router } from "expo-router";
 import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
 import { useThemeTokens } from "../../features/theme/useTheme";
-import { usePreferencesStore } from "../../features/preferences/store";
 import PlatformBannerAd from "../common/PlatformBannerAd";
 
 export default function MonthGrid() {
@@ -20,7 +19,6 @@ export default function MonthGrid() {
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
   const todayKey = formatLocalDay(new Date());
-  const dayTap = usePreferencesStore((s) => s.dayTapBehavior);
 
   const data = useMemo(
     () =>
@@ -60,17 +58,10 @@ export default function MonthGrid() {
               className={`flex-1 p-1 ${index >= data.length - 7 ? '' : 'border-b'} border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
               style={{ height: cell || undefined }}
               onPress={() => {
-                // 設定に応じて挙動分岐
-                if (dayTap === 'openNewModal') {
-                  const d = new Date(item.date);
-                  d.setHours(new Date().getHours(), 0, 0, 0);
-                  router.push({ pathname: "/(modal)/event-editor", params: { date: d.toISOString() } });
-                } else {
-                  // 日にちタップでその日に遷移（既定）
-                  useCalendarStore.getState().setDate(new Date(item.date));
-                  useCalendarStore.getState().setView("day");
-                  router.push({ pathname: "/(drawer)/day", params: { origin: "month" } });
-                }
+                const now = new Date();
+                const d = new Date(item.date);
+                d.setHours(now.getHours(), now.getMinutes(), 0, 0);
+                router.push({ pathname: "/(modal)/event-editor", params: { date: d.toISOString() } });
               }}
               onLongPress={() => {
                 const d = new Date(item.date);

@@ -1,8 +1,8 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import { mmkvStorage } from '../storage/mmkv';
-import { currentTimeZone, formatLocalDay, fromUtcIsoToLocalDate, startOfDay, addDays, addMinutes } from '../../lib/date';
-import { useNotificationStore } from '../notifications/store';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { mmkvStorage } from "../storage/mmkv";
+import { currentTimeZone, formatLocalDay, fromUtcIsoToLocalDate, startOfDay, addDays, addMinutes } from "../../lib/date";
+import { useNotificationStore } from "../notifications/store";
 
 export type EventItem = {
   id: string;
@@ -15,16 +15,15 @@ export type EventItem = {
 
 type State = {
   eventsById: Record<string, EventItem>;
-  schemaVersion: number;
   indexByLocalDay: Record<string, string[]>; // YYYY-MM-DD -> ids
   hydrated: boolean;
   lastIndexedTz?: string;
 };
 
-type AddUpdateOptions = { patternKey?: import('../notifications/store').PatternKey };
+type AddUpdateOptions = { patternKey?: import("../notifications/store").PatternKey };
 
 type Actions = {
-  add: (input: Omit<EventItem, 'id'>, opts?: AddUpdateOptions) => string;
+  add: (input: Omit<EventItem, "id">, opts?: AddUpdateOptions) => string;
   update: (id: string, patch: Partial<EventItem>, opts?: AddUpdateOptions) => void;
   remove: (id: string) => void;
   rebuildIndex: (tz?: string) => void;
@@ -35,9 +34,9 @@ type Actions = {
 
 const genId = () => {
   // 簡易UUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
-    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
     return v.toString(16);
   });
 };
@@ -46,7 +45,6 @@ export const useEventStore = create<State & Actions>()(
   persist(
     (set, get) => ({
       eventsById: {},
-      schemaVersion: 2,
       indexByLocalDay: {},
       hydrated: false,
       lastIndexedTz: undefined,
@@ -117,7 +115,10 @@ export const useEventStore = create<State & Actions>()(
         get().rebuildIndex(tz);
         // 通知取消
         try {
-          useNotificationStore.getState().cancelForEvent(id).catch(() => {});
+          useNotificationStore
+            .getState()
+            .cancelForEvent(id)
+            .catch(() => {});
         } catch {}
       },
 
@@ -164,10 +165,9 @@ export const useEventStore = create<State & Actions>()(
       },
     }),
     {
-      // 完全やり直し前提。キーも更新して古いデータと分離
-      name: 'event-store-v2',
+      name: "event-store-v1",
       storage: createJSONStorage(() => mmkvStorage),
-      partialize: (s) => ({ eventsById: s.eventsById, schemaVersion: s.schemaVersion }),
+      partialize: (s) => ({ eventsById: s.eventsById }),
       onRehydrateStorage: () => (state) => {
         state?.setHydrated(true);
         // 復元後にインデックス再構築
