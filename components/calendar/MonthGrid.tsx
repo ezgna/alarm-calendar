@@ -10,9 +10,10 @@ import PlatformBannerAd from "../common/PlatformBannerAd";
 
 type Props = {
   onSelectDate?: (date: Date) => void;
+  isSheetOpen?: boolean;
 };
 
-export default function MonthGrid({ onSelectDate }: Props) {
+export default function MonthGrid({ onSelectDate, isSheetOpen }: Props) {
   const { t } = useThemeTokens();
   const [gridHeight, setGridHeight] = useState(0);
   const cell = gridHeight > 0 ? Math.floor(gridHeight / 6) : 0;
@@ -56,7 +57,7 @@ export default function MonthGrid({ onSelectDate }: Props) {
           data={data}
           numColumns={7}
           keyExtractor={(item) => item.key}
-          scrollEnabled={false}
+          scrollEnabled={!!isSheetOpen}
           renderItem={({ item, index }) => (
             <TouchableOpacity
               className={`flex-1 p-1 ${index >= data.length - 7 ? '' : 'border-b'} border-r ${t.border} ${item.isCurrentMonth ? t.appBg : t.surfaceBg}`}
@@ -111,7 +112,7 @@ export default function MonthGrid({ onSelectDate }: Props) {
               </View>
             </TouchableOpacity>
           )}
-          contentContainerStyle={{}}
+          contentContainerStyle={isSheetOpen ? { paddingBottom: 160 } : undefined}
         />
       </View>
       <PlatformBannerAd />

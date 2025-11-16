@@ -52,7 +52,7 @@ export default function Month() {
         onAdd={() => router.push({ pathname: '/(modal)/event-editor', params: { date: new Date().toISOString() } })}
       />
       <PagedView onPage={(d) => page(d)}>
-        <MonthGrid onSelectDate={handleSelectDate} />
+        <MonthGrid onSelectDate={handleSelectDate} isSheetOpen={sheetVisible} />
       </PagedView>
       <DaySheet visible={sheetVisible} date={activeDate} onRequestClose={handleRequestClose} onClosed={handleSheetClosed} />
     </View>
