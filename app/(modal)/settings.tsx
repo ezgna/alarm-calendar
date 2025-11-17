@@ -1,12 +1,14 @@
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { PatternKey, PATTERN_KEYS, useNotificationStore } from "../../features/notifications/store";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
 import { useSoundPreview } from "../../features/notifications/useSoundPreview";
 import { useSubscriptionStore } from "../../features/subscription/store";
 import { useThemeStore } from "../../features/theme/store";
 import { useThemeTokens } from "../../features/theme/useTheme";
+import { requirePremium } from "../../features/subscription/paywall";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Settings() {
   const { t } = useThemeTokens();
@@ -16,17 +18,7 @@ export default function Settings() {
   const patterns = useNotificationStore((s) => s.patterns);
   const savePattern = useNotificationStore((s) => s.savePattern);
   const rawIsPremium = useSubscriptionStore((s) => s.isPremium);
-  const rawBusy = useSubscriptionStore((s) => s.busy);
-  const rawLastMessage = useSubscriptionStore((s) => s.lastMessage);
-  const rawRefreshFromPurchases = useSubscriptionStore((s) => s.refreshFromPurchases);
-  const rawPurchaseDefaultPackage = useSubscriptionStore((s) => s.purchaseDefaultPackage);
-  const rawRestore = useSubscriptionStore((s) => s.restore);
   const isPremium = isSubscriptionDisabled ? false : rawIsPremium;
-  const busy = isSubscriptionDisabled ? false : rawBusy;
-  const lastMessage = isSubscriptionDisabled ? "" : rawLastMessage;
-  const refreshFromPurchases = isSubscriptionDisabled ? () => {} : rawRefreshFromPurchases;
-  const purchaseDefaultPackage = isSubscriptionDisabled ? () => {} : rawPurchaseDefaultPackage;
-  const restore = isSubscriptionDisabled ? () => {} : rawRestore;
   const [editing, setEditing] = useState<PatternKey | null>(null);
   const [name, setName] = useState("");
   // 通知タイミング（分）の選択肢（最大5件）
@@ -39,12 +31,20 @@ export default function Settings() {
   const [customHour, setCustomHour] = useState<string>("0");
   const [customMin, setCustomMin] = useState<string>("5");
   const startEdit = (k: PatternKey) => {
+    if (!isPremium && k !== "default") return;
     const p = patterns[k];
     setEditing(k);
     setName(p?.name ?? "");
     setOffsetList([...(p?.offsetsMin ?? [])]);
     setSoundId((p as any)?.soundId ?? "default");
     setShowCustom(false);
+  };
+
+  const requestPremiumAndEdit = async (k: PatternKey) => {
+    const ok = await requirePremium();
+    if (ok) {
+      startEdit(k);
+    }
   };
   const commitEdit = () => {
     if (!editing) return;
@@ -57,6 +57,12 @@ export default function Settings() {
       stopPreview();
     }
   }, [editing, stopPreview]);
+
+  useEffect(() => {
+    if (!isPremium && editing && editing !== "default") {
+      setEditing(null);
+    }
+  }, [isPremium, editing]);
 
   // よく使う候補（分単位）
   const QUICK_CHOICES: number[] = useMemo(
@@ -133,32 +139,6 @@ export default function Settings() {
             </View>
           </View>
 
-          {!isSubscriptionDisabled && (
-            <View style={{ gap: 8 }}>
-              {/* サブスクリプション（RevenueCat）テスト */}
-              <Text className={`${t.textMuted}`}>サブスクリプション（テスト）</Text>
-              <View className="flex-row items-center" style={{ gap: 12 }}>
-                <View className="px-2 py-1 rounded-md border" style={{ borderColor: "#e5e7eb" }}>
-                  <Text className={`${t.text}`}>現在: {isPremium ? "Premium" : "Free"}</Text>
-                </View>
-                {busy && <ActivityIndicator />}
-              </View>
-              {lastMessage && <Text className={`${t.textMuted}`}>{lastMessage}</Text>}
-              <View className="flex-row flex-wrap" style={{ gap: 12 }}>
-                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonPrimaryBg}`} onPress={purchaseDefaultPackage}>
-                  <Text className={`${t.buttonPrimaryText}`}>購入テスト</Text>
-                </TouchableOpacity>
-                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={refreshFromPurchases}>
-                  <Text className={`${t.buttonNeutralText}`}>権限を更新</Text>
-                </TouchableOpacity>
-                <TouchableOpacity disabled={busy} className={`px-3 py-2 rounded-md ${t.buttonNeutralBg}`} onPress={restore}>
-                  <Text className={`${t.buttonNeutralText}`}>購入を復元</Text>
-                </TouchableOpacity>
-              </View>
-              <Text className={`${t.textMuted}`}>テスト中: RevenueCatテストキーでiOSを構成（app/_layout.tsx）。</Text>
-            </View>
-          )}
-
           {/* アラームパターン */}
           <View style={{ gap: 8 }}>
             <Text className={`${t.textMuted}`}>アラームパターン</Text>
@@ -166,18 +146,28 @@ export default function Settings() {
               const p = patterns[k];
               const isEditing = editing === k;
               const isDefault = k === "default";
+              const locked = !isPremium && !isDefault;
               return (
                 <View key={k} className={`border rounded-md p-3 ${t.border}`} style={{ gap: 8 }}>
                   {!isEditing ? (
                     <>
-                      <View className="flex-row justify-between items-center">
-                        <Text className={`${t.text}`}>{p.name}</Text>
-                        {!isDefault && (
-                          <TouchableOpacity className={`px-3 py-1 rounded-md ${t.buttonNeutralBg}`} onPress={() => startEdit(k)}>
-                            <Text className={`${t.buttonNeutralText}`}>編集</Text>
-                          </TouchableOpacity>
-                        )}
-                      </View>
+                        <View className="flex-row justify-between items-center">
+                          <Text className={`${t.text}`}>{p.name}</Text>
+                          {!isDefault && !locked && (
+                            <TouchableOpacity className={`px-3 py-1 rounded-md ${t.buttonNeutralBg}`} onPress={() => startEdit(k)}>
+                              <Text className={`${t.buttonNeutralText}`}>編集</Text>
+                            </TouchableOpacity>
+                          )}
+                          {!isDefault && locked && (
+                            <TouchableOpacity
+                              className={`px-3 py-1 rounded-md ${t.buttonPrimaryBg}`}
+                              accessibilityLabel="Premiumで解放"
+                              onPress={() => requestPremiumAndEdit(k)}
+                            >
+                              <Ionicons name="lock-closed" size={14} color="#ffffff" />
+                            </TouchableOpacity>
+                          )}
+                        </View>
                       <Text className={`${t.textMuted}`}>{p.offsetsMin.length > 0 ? p.offsetsMin.map(formatOffsetLabel).join("、 ") : "-"}</Text>
                     </>
                   ) : (

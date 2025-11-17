@@ -1,6 +1,6 @@
 import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
 import { router, useLocalSearchParams, Stack } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import ColorPicker from "../../components/common/ColorPicker";
 import { DEFAULT_COLOR_ID } from "../../components/common/colorVariants";
@@ -8,6 +8,7 @@ import { useEventStore } from "../../features/events/store";
 import { addMinutes, fromUtcIsoToLocalDate, toUtcIsoString } from "../../lib/date";
 import { useThemeTokens } from "../../features/theme/useTheme";
 import { useNotificationStore, PatternKey, PATTERN_KEYS, CUSTOM_PATTERN_KEYS } from "../../features/notifications/store";
+import { useSubscriptionStore } from "../../features/subscription/store";
 
 export default function EventEditor() {
   const { t } = useThemeTokens();
@@ -22,6 +23,9 @@ export default function EventEditor() {
   const patterns = useNotificationStore((s) => s.patterns);
   const lastUsedPatternKey = useNotificationStore((s) => s.lastUsedPatternKey);
   const eventPatternKeyByEventId = useNotificationStore((s) => s.eventPatternKeyByEventId);
+  const rawIsPremium = useSubscriptionStore((s) => s.isPremium);
+  const isSubscriptionDisabled = Platform.OS === "android";
+  const isPremium = isSubscriptionDisabled ? false : rawIsPremium;
 
   const existing = id ? getById[id] : undefined;
   const isEdit = !!id; // 画面ヘッダーは ID の有無で判定（ストアの読込待ちによるチラつきを防ぐ）
@@ -48,12 +52,24 @@ export default function EventEditor() {
     const p = patterns[k];
     return !!(p && p.registered && (p.offsetsMin?.length ?? 0) > 0);
   };
-  const initialPatternKey: PatternKey = existing
-    ? (eventPatternKeyByEventId[existing.id] as PatternKey) || "default"
-    : (lastUsedPatternKey as PatternKey) && isUsableForNew(lastUsedPatternKey as PatternKey)
-      ? (lastUsedPatternKey as PatternKey)
-      : "default";
-  const [patternKey, setPatternKey] = useState<PatternKey>(initialPatternKey);
+  const resolveInitialPatternKey = (): PatternKey => {
+    if (!isPremium) return "default";
+    if (existing) {
+      return (eventPatternKeyByEventId[existing.id] as PatternKey) || "default";
+    }
+    if (lastUsedPatternKey && isUsableForNew(lastUsedPatternKey as PatternKey)) {
+      return lastUsedPatternKey as PatternKey;
+    }
+    return "default";
+  };
+
+  const [patternKey, setPatternKey] = useState<PatternKey>(resolveInitialPatternKey());
+
+  useEffect(() => {
+    if (!isPremium) {
+      setPatternKey("default");
+    }
+  }, [isPremium]);
 
   const formatDateTimeLabel = (date: Date) =>
     date.toLocaleString(undefined, {
@@ -207,7 +223,7 @@ export default function EventEditor() {
         <View className="gap-2">
           <Text className={`text-sm ${t.textMuted}`}>アラームパターン</Text>
           <View className="flex-row flex-wrap gap-2">
-            {PATTERN_KEYS.filter((k) => (existing ? true : isUsableForNew(k))).map((k) => {
+            {(isPremium ? PATTERN_KEYS.filter((k) => (existing ? true : isUsableForNew(k))) : (['default'] as PatternKey[])).map((k) => {
               const p = patterns[k];
               const registered = p?.registered;
               const usable = existing ? !!registered : isUsableForNew(k);

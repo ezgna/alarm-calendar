@@ -8,6 +8,7 @@ import { mmkvStorage } from '../storage/mmkv';
 import { initializeNotifications, ensurePermissions, scheduleOnce, cancelMany, listScheduled } from './service';
 import type { SoundId } from './sounds';
 import { fromUtcIsoToLocalDate } from '../../lib/date';
+import { useSubscriptionStore } from '../subscription/store';
 
 // パターンキー
 export type PatternKey = 'default' | 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
@@ -96,6 +97,7 @@ export const useNotificationStore = create<State & Actions>()(
 
       savePattern: (key, input) => {
         if (key === 'default') return; // デフォルトは編集不可
+        if (!useSubscriptionStore.getState().isPremium) return; // Premium限定
         const offsets = clampAndSortOffsets(input.offsetsMin);
         set((s) => ({
           patterns: {
@@ -161,9 +163,12 @@ export const useNotificationStore = create<State & Actions>()(
       },
 
       scheduleForEventWithPattern: async (event, key) => {
-        const p = get().patterns[key] ?? get().patterns['default'];
-        const offsets = p.registered ? p.offsetsMin : get().patterns['default'].offsetsMin;
-        const soundId = p.soundId ?? 'default';
+        const isPremium = useSubscriptionStore.getState().isPremium;
+        const fallback = get().patterns['default'];
+        const effectiveKey = isPremium ? key : 'default';
+        const pattern = get().patterns[effectiveKey] ?? fallback;
+        const offsets = pattern.registered ? pattern.offsetsMin : fallback.offsetsMin;
+        const soundId = isPremium ? pattern.soundId ?? 'default' : 'default';
         return await get().scheduleForEventWithOffsets(event, offsets, soundId);
       },
 
@@ -179,7 +184,8 @@ export const useNotificationStore = create<State & Actions>()(
       rescheduleForEvent: async (event, key) => {
         await get().cancelForEvent(event.id);
         const resolvedKey = key ?? get().eventPatternKeyByEventId[event.id] ?? 'default';
-        return await get().scheduleForEventWithPattern(event, resolvedKey);
+        const nextKey = useSubscriptionStore.getState().isPremium ? resolvedKey : 'default';
+        return await get().scheduleForEventWithPattern(event, nextKey);
       },
     }),
     {

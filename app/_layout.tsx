@@ -16,6 +16,7 @@ import { StatusBar } from 'expo-status-bar';
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
 
   useEffect(() => {
     Purchases.setLogLevel(LOG_LEVEL.ERROR);
@@ -24,6 +25,12 @@ export default function RootLayout() {
       Purchases.configure({ apiKey: "appl_laqfZVBJkcTrHBwFRunTgmwimmu" });
     }
   }, []);
+
+  useEffect(() => {
+    try {
+      useAdsStore.getState().setAdsRemoved(isPremium);
+    } catch {}
+  }, [isPremium]);
 
   // 起動時に購入状態を同期（失敗は無視）
   useEffect(() => {

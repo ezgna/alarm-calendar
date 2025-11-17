@@ -7,6 +7,9 @@ import { useSubscriptionStore } from "../../features/subscription/store";
 
 function CustomDrawerContent(props: any) {
   const isAndroid = Platform.OS === "android"; // Androidではプレミアム項目を非表示
+  const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const isSubscriptionDisabled = isAndroid;
+  const showPremiumEntry = !isSubscriptionDisabled && !isPremium;
   const policyUrl = "https://sites.google.com/view/dotakyanbancho/%E3%83%97%E3%83%A9%E3%82%A4%E3%83%90%E3%82%B7%E3%83%BC%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC";
   return (
     <DrawerContentScrollView {...props}>
@@ -20,7 +23,7 @@ function CustomDrawerContent(props: any) {
           router.replace("/(drawer)/day");
         }}
       />
-      {!isAndroid && (
+      {showPremiumEntry && (
         <DrawerItem
           label="プレミアム"
           onPress={async () => {
