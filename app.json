@@ -14,7 +14,8 @@
     "ios": {
       "icon": "assets/icons/app.icon",
       "supportsTablet": true,
-      "bundleIdentifier": "com.monashop.dotakyanbancho",
+      // "bundleIdentifier": "com.monashop.dotakyanbancho",
+      "bundleIdentifier": "com.monashop.dotakyanbancho.dev",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

@@ -4,7 +4,7 @@
 export type ColorId = 'pink' | 'orange' | 'cream' | 'blue' | 'green' | 'yellow';
 
 // 既定色はブルー系
-export const DEFAULT_COLOR_ID: ColorId = 'blue';
+export const DEFAULT_COLOR_ID: ColorId = 'green';
 
 // 画面表示用の短い日本語ラベル
 export const COLOR_LABELS: Record<ColorId, string> = {

@@ -69,7 +69,13 @@ export default function MonthGrid({ onSelectDate, isSheetOpen }: Props) {
               }}
               onLongPress={() => {
                 const d = new Date(item.date);
-                d.setHours(new Date().getHours(), 0, 0, 0);
+                const now = new Date();
+                const isTodayCell = formatLocalDay(d) === todayKey;
+                if (isTodayCell) {
+                  d.setHours(now.getHours(), now.getMinutes(), 0, 0);
+                } else {
+                  d.setHours(0, 0, 0, 0);
+                }
                 router.push({ pathname: "/(modal)/event-editor", params: { date: d.toISOString() } });
               }}
             >
@@ -112,7 +118,7 @@ export default function MonthGrid({ onSelectDate, isSheetOpen }: Props) {
               </View>
             </TouchableOpacity>
           )}
-          contentContainerStyle={isSheetOpen ? { paddingBottom: 160 } : undefined}
+          contentContainerStyle={isSheetOpen ? { paddingBottom: 240 } : undefined}
         />
       </View>
       <PlatformBannerAd />

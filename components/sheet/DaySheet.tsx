@@ -34,7 +34,15 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
 
   const handleCreate = () => {
     if (!date) return;
-    router.push({ pathname: "/(modal)/event-editor", params: { date: date.toISOString() } });
+    const now = new Date();
+    const target = new Date(date);
+    const isToday = formatLocalDay(target) === formatLocalDay(now);
+    if (isToday) {
+      target.setHours(now.getHours(), now.getMinutes(), 0, 0);
+    } else {
+      target.setHours(0, 0, 0, 0);
+    }
+    router.push({ pathname: "/(modal)/event-editor", params: { date: target.toISOString() } });
   };
 
   const handleEdit = (id: string) => {
