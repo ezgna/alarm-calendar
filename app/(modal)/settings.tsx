@@ -4,6 +4,7 @@ import { Button, Keyboard, Platform, ScrollView, Text, TextInput, TouchableOpaci
 import { PatternKey, PATTERN_KEYS, useNotificationStore } from "../../features/notifications/store";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
 import { useSoundPreview } from "../../features/notifications/useSoundPreview";
+import { getPatternDot, getPatternTint } from "../../features/notifications/patternColors";
 import { useSubscriptionStore } from "../../features/subscription/store";
 import { useThemeStore } from "../../features/theme/store";
 import { useThemeTokens } from "../../features/theme/useTheme";
@@ -147,12 +148,40 @@ export default function Settings() {
               const isEditing = editing === k;
               const isDefault = k === "default";
               const locked = !isPremium && !isDefault;
+              const tint = getPatternTint(k);
+              const active = editing === k;
               return (
                 <View key={k} className={`border rounded-md p-3 ${t.border}`} style={{ gap: 8 }}>
                   {!isEditing ? (
                     <>
-                        <View className="flex-row justify-between items-center">
-                          <Text className={`${t.text}`}>{p.name}</Text>
+                        <View
+                          className="flex-row justify-between items-center"
+                          style={{
+                            backgroundColor: tint?.bg,
+                            borderColor: tint?.border,
+                            borderWidth: tint ? 1 : 1,
+                            borderRadius: 8,
+                            padding: 8,
+                            opacity: locked ? 0.6 : 1,
+                            shadowColor: active ? "#000" : "transparent",
+                            shadowOpacity: active ? 0.08 : 0,
+                            shadowRadius: active ? 4 : 0,
+                            shadowOffset: active ? { width: 0, height: 2 } : { width: 0, height: 0 },
+                            elevation: active ? 2 : 0,
+                          }}
+                        >
+                          <View className="flex-row items-center" style={{ gap: 6 }}>
+                            <View
+                              style={{
+                                width: 10,
+                                height: 10,
+                                borderRadius: 5,
+                                backgroundColor: getPatternDot(k),
+                                opacity: tint ? 1 : 0.5,
+                              }}
+                            />
+                            <Text className={`${t.text}`}>{p.name}</Text>
+                          </View>
                           {!isDefault && !locked && (
                             <TouchableOpacity className={`px-3 py-1 rounded-md ${t.buttonNeutralBg}`} onPress={() => startEdit(k)}>
                               <Text className={`${t.buttonNeutralText}`}>編集</Text>

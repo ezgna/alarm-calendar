@@ -14,8 +14,7 @@
     "ios": {
       "icon": "assets/icons/app.icon",
       "supportsTablet": true,
-      // "bundleIdentifier": "com.monashop.dotakyanbancho",
-      "bundleIdentifier": "com.monashop.dotakyanbancho.dev",
+      "bundleIdentifier": "com.monashop.dotakyanbancho",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
@@ -42,11 +41,11 @@
         "expo-notifications",
         {
           "sounds": [
-            "./assets/sounds/ding.wav",
-            "./assets/sounds/phone_ringtone.wav",
-            "./assets/sounds/refreshing_wakeup.wav",
-            "./assets/sounds/smartphone_ringtone.wav",
-            "./assets/sounds/telephone_ringtone.wav"
+            "./assets/sounds/ding_29s_fade.wav",
+            "./assets/sounds/phone_ringtone_29s_fade.wav",
+            "./assets/sounds/smartphone_ringtone_29s_fade.wav",
+            "./assets/sounds/telephone_ringtone_29s_fade.wav",
+            "./assets/sounds/xylophone_29s_fade.wav"
           ]
         }
       ],
@@ -121,7 +120,8 @@
           ]
         }
       ],
-      "expo-audio"
+      "expo-audio",
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true,

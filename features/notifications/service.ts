@@ -5,7 +5,7 @@
 
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
-import { resolveIosSound, SOUND_CATALOG, type SoundId } from "./sounds";
+import { DEFAULT_SOUND_FILENAME, resolveIosSound, SOUND_CATALOG, type SoundId } from "./sounds";
 
 const DBG = typeof __DEV__ !== "undefined" ? __DEV__ : true;
 const log = (...args: any[]) => {
@@ -18,17 +18,16 @@ let initialized = false;
 let androidChannelsPrepared = false;
 
 const ANDROID_CHANNELS: Record<SoundId, { id: string; name: string; sound: string | null }> = {
-  default: { id: "reminder-default", name: "リマインダー（既定）", sound: null },
-  ding: { id: "reminder-ding", name: "リマインダー（ディング）", sound: SOUND_CATALOG.ding },
+  default: { id: "reminder-default", name: "リマインダー（既定）", sound: DEFAULT_SOUND_FILENAME }, // 端末既定ではなく ding_29s_fade.wav を利用
   phoneRingtone: { id: "reminder-phone", name: "リマインダー（クラシックベル）", sound: SOUND_CATALOG.phoneRingtone },
-  refreshingWakeup: { id: "reminder-refreshing", name: "リマインダー（さわやか）", sound: SOUND_CATALOG.refreshingWakeup },
   smartphoneRingtone: { id: "reminder-smartphone", name: "リマインダー（スマホ着信）", sound: SOUND_CATALOG.smartphoneRingtone },
   telephoneRingtone: { id: "reminder-telephone", name: "リマインダー（黒電話）", sound: SOUND_CATALOG.telephoneRingtone },
+  xylophone: { id: "reminder-xylophone", name: "リマインダー（木琴）", sound: SOUND_CATALOG.xylophone },
 };
 
-const resolveAndroidChannelId = (soundId?: SoundId) => {
+const resolveAndroidChannelId = (soundId?: SoundId | string) => {
   if (!soundId) return ANDROID_CHANNELS.default.id;
-  return ANDROID_CHANNELS[soundId]?.id ?? ANDROID_CHANNELS.default.id;
+  return ANDROID_CHANNELS[soundId as SoundId]?.id ?? ANDROID_CHANNELS.default.id;
 };
 
 async function ensureAndroidChannels() {
@@ -82,7 +81,7 @@ export async function scheduleOnce(params: {
   date: Date;
   title: string;
   body?: string;
-  soundId?: SoundId; // ← 追加：'default' | 'ding' | 'phoneRingtone' | 'refreshingWakeup' | 'smartphoneRingtone' | 'telephoneRingtone'
+  soundId?: SoundId; // ← 追加：'default' | 'phoneRingtone' | 'smartphoneRingtone' | 'telephoneRingtone' | 'xylophone'
 }): Promise<string | null> {
   try {
     const now = Date.now();
@@ -97,7 +96,7 @@ export async function scheduleOnce(params: {
       return null; // 過去は予約しない
     }
 
-    // iOS: 'default' か 'xxx.wav'（パスなし）のどちらかを渡す
+    // iOS: 'ding_29s_fade.wav'（既定も同じ）か 'xxx.wav'（パスなし）を渡す
     if (Platform.OS === "android") {
       await ensureAndroidChannels();
     }

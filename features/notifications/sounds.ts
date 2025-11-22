@@ -1,10 +1,12 @@
 export type SoundId =
   | 'default'
-  | 'ding'
   | 'phoneRingtone'
-  | 'refreshingWakeup'
   | 'smartphoneRingtone'
-  | 'telephoneRingtone';
+  | 'telephoneRingtone'
+  | 'xylophone';
+
+// 端末既定は使わず、アプリ内の ding_29s_fade.wav を「デフォルト音」として利用
+export const DEFAULT_SOUND_FILENAME = 'ding_29s_fade.wav';
 
 type SoundOption = {
   id: SoundId;
@@ -14,35 +16,35 @@ type SoundOption = {
 
 // ファイル名は app.json の expo-notifications.sounds に登録したものと一致させる
 export const SOUND_CATALOG: Record<Exclude<SoundId, 'default'>, string> = {
-  ding: 'ding.wav',
-  phoneRingtone: 'phone_ringtone.wav',
-  refreshingWakeup: 'refreshing_wakeup.wav',
-  smartphoneRingtone: 'smartphone_ringtone.wav',
-  telephoneRingtone: 'telephone_ringtone.wav',
+  phoneRingtone: 'phone_ringtone_29s_fade.wav',
+  smartphoneRingtone: 'smartphone_ringtone_29s_fade.wav',
+  telephoneRingtone: 'telephone_ringtone_29s_fade.wav',
+  xylophone: 'xylophone_29s_fade.wav',
 };
 
-// プレビュー用のローカルアセット。default は OS 依存なため null。
+// プレビュー用のローカルアセット。default も ding_29s_fade.wav を再生する。
 export const SOUND_PREVIEW_ASSETS: Partial<Record<SoundId, number>> = {
-  ding: require('../../assets/sounds/ding.wav'),
-  phoneRingtone: require('../../assets/sounds/phone_ringtone.wav'),
-  refreshingWakeup: require('../../assets/sounds/refreshing_wakeup.wav'),
-  smartphoneRingtone: require('../../assets/sounds/smartphone_ringtone.wav'),
-  telephoneRingtone: require('../../assets/sounds/telephone_ringtone.wav'),
+  default: require('../../assets/sounds/ding_29s_fade.wav'),
+  phoneRingtone: require('../../assets/sounds/phone_ringtone_29s_fade.wav'),
+  smartphoneRingtone: require('../../assets/sounds/smartphone_ringtone_29s_fade.wav'),
+  telephoneRingtone: require('../../assets/sounds/telephone_ringtone_29s_fade.wav'),
+  xylophone: require('../../assets/sounds/xylophone_29s_fade.wav'),
 };
 
 // iOS: NotificationContent.sound へ渡す値を解決
-// 既定音は 'default'、カスタムは「ファイル名だけ」（パスなし）
-export const resolveIosSound = (id?: SoundId): string => {
-  if (!id || id === 'default') return 'default';
-  return SOUND_CATALOG[id];
+// 既定音も ding.wav を使用（端末既定は使わない）。カスタムは「ファイル名だけ」（パスなし）
+export const resolveIosSound = (id?: SoundId | string): string => {
+  if (!id || id === 'default') return DEFAULT_SOUND_FILENAME;
+  const resolved = SOUND_CATALOG[id as Exclude<SoundId, 'default'>];
+  return resolved ?? DEFAULT_SOUND_FILENAME;
 };
 
 // UI用の選択肢（プレビュー可否も保持）
 export const SOUND_OPTIONS: SoundOption[] = [
-  { id: 'default', label: 'デフォルト', previewable: false },
-  { id: 'ding', label: 'ディング', previewable: true },
-  { id: 'phoneRingtone', label: 'クラシックベル', previewable: true },
-  { id: 'smartphoneRingtone', label: 'スマホ着信', previewable: true },
-  { id: 'telephoneRingtone', label: '黒電話', previewable: true },
-  { id: 'refreshingWakeup', label: 'さわやか', previewable: true },
+  // デフォルト=ding.wav を鳴らす（選択肢は残す）
+  { id: 'default', label: 'デフォルト', previewable: true },
+  { id: 'phoneRingtone', label: '黒電話', previewable: true },
+  { id: 'smartphoneRingtone', label: '波', previewable: true },
+  { id: 'telephoneRingtone', label: '着信音', previewable: true },
+  { id: 'xylophone', label: '木琴', previewable: true },
 ];
