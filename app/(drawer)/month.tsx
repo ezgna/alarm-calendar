@@ -1,16 +1,16 @@
-import { FlatList, View, useWindowDimensions, Text } from "react-native";
-import { useCallback, useMemo, useRef, useState } from "react";
-import Header from "../../components/common/Header";
-import WeekRow, { WeekItem } from "../../components/calendar/WeekRow";
-import { useCalendarStore } from "../../features/calendar/store";
-import { addMonths, startOfMonth, startOfWeek, addDays } from "../../lib/date";
-import { router } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
-import { useThemeTokens } from "../../features/theme/useTheme";
-import DaySheet from "../../components/sheet/DaySheet";
+import { router } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { FlatList, NativeScrollEvent, NativeSyntheticEvent, Text, View, useWindowDimensions } from "react-native";
+import WeekRow, { WeekItem } from "../../components/calendar/WeekRow";
+import Header from "../../components/common/Header";
 import PlatformBannerAd from "../../components/common/PlatformBannerAd";
+import DaySheet from "../../components/sheet/DaySheet";
+import { useCalendarStore } from "../../features/calendar/store";
+import { useThemeTokens } from "../../features/theme/useTheme";
+import { addDays, addMonths, startOfMonth, startOfWeek } from "../../lib/date";
 
-const MONTH_SPAN = 24; // 前後に用意する月バッファ（週リスト用）
+const MONTH_SPAN = 12; // 前後に用意する月バッファを縮小して初期レンダリング負荷を低減
 const DAY_CELL_HEIGHT = 102; // 日セル縦幅：ここを変えれば高さを調整可能
 
 function formatTitle(date: Date) {
@@ -63,7 +63,9 @@ export default function Month() {
       const rep = days[3]; // 週の真ん中を代表月に使用
       const labelMonthDay = days.find((d) => d.getDate() === 1);
       const stripeIndex = ((rep.getFullYear() - anchorDate.getFullYear()) * 12 + (rep.getMonth() - anchorDate.getMonth())) % 2;
-      weeks.push({ start: cursor, days, repMonth: rep, stripeIndex });
+      // 事前計算: 日毎のイベントキーだけ持たせる（実データは WeekRow で store から参照）
+      const dayKeys = days.map((d) => `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`);
+      weeks.push({ start: cursor, days, repMonth: rep, stripeIndex, dayKeys });
 
       if (labelMonthDay) {
         const key = monthKey(labelMonthDay);
@@ -76,6 +78,14 @@ export default function Month() {
     const currentIdx = weeks.findIndex((w) => currentDate >= w.start && currentDate < addDays(w.start, 7));
     return { weeks, monthStartIndex, initialIndex: currentIdx >= 0 ? currentIdx : 0 };
   }, [anchorDate, currentDate]);
+
+  // 初期インデックスを同期
+  useEffect(() => {
+    currentIndexRef.current = initialIndex;
+    const initialMonth = weeks[initialIndex]?.repMonth ?? currentDate;
+    setVisibleMonth(startOfMonth(initialMonth));
+    setDate(startOfMonth(initialMonth));
+  }, [initialIndex, weeks, setDate, currentDate]);
 
   const handleSelectDate = useCallback((d: Date) => {
     setSelectedDate(d);
@@ -124,6 +134,22 @@ export default function Month() {
     setVisibleMonth(todayMonth);
   }, [scrollToIndex, goToday, monthStartIndex]);
 
+  // 画面中央付近の週をもとに月を決定（スクロール停止時のみ計算）
+  const updateMonthByOffset = useCallback(
+    (offsetY: number, viewportH: number) => {
+      const mid = offsetY + viewportH / 2;
+      const idx = clamp(Math.round(mid / itemHeight), 0, weeks.length - 1);
+      const week = weeks[idx];
+      if (!week) return;
+      const monthDate = startOfMonth(week.repMonth);
+      if (monthDate.getTime() === visibleMonth.getTime()) return; // 変化なしならスキップ
+      currentIndexRef.current = idx;
+      setVisibleMonth(monthDate);
+      setDate(monthDate);
+    },
+    [itemHeight, weeks, visibleMonth, setDate]
+  );
+
   const renderItem = useCallback(
     ({ item }: { item: WeekItem }) => {
       return (
@@ -132,6 +158,7 @@ export default function Month() {
             days={item.days}
             repMonth={item.repMonth}
             stripeIndex={item.stripeIndex}
+            dayKeys={item.dayKeys}
             cellSize={cellSize}
             cellHeight={cellHeight}
             onSelectDate={handleSelectDate}
@@ -140,18 +167,6 @@ export default function Month() {
       );
     },
     [cellSize, cellHeight, handleSelectDate, itemHeight]
-  );
-
-  const handleViewableItemsChanged = useRef(
-    ({ viewableItems }: { viewableItems: Array<{ item: WeekItem; index?: number }> }) => {
-      if (!viewableItems?.length) return;
-      const target = viewableItems[0];
-      if (!target.item) return;
-      const monthDate = startOfMonth(target.item.repMonth);
-      currentIndexRef.current = target.index ?? currentIndexRef.current;
-      setVisibleMonth(monthDate);
-      setDate(monthDate);
-    }
   );
 
   const keyExtractor = useCallback((item: WeekItem) => item.start.toISOString(), []);
@@ -175,8 +190,14 @@ export default function Month() {
         keyExtractor={keyExtractor}
         initialScrollIndex={initialIndex}
         getItemLayout={(_, index) => ({ length: itemHeight, offset: itemHeight * index, index })}
-        onViewableItemsChanged={handleViewableItemsChanged.current}
-        viewabilityConfig={{ viewAreaCoveragePercentThreshold: 60 }}
+        // スクロール停止時に月を判定（中央の週を採用）
+        onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => updateMonthByOffset(e.nativeEvent.contentOffset.y, e.nativeEvent.layoutMeasurement.height)}
+        onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => updateMonthByOffset(e.nativeEvent.contentOffset.y, e.nativeEvent.layoutMeasurement.height)}
+        initialNumToRender={8}
+        windowSize={6}
+        maxToRenderPerBatch={6}
+        updateCellsBatchingPeriod={50}
+        removeClippedSubviews
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: sheetVisible ? 240 : 120 }}
         ListFooterComponent={<View className="py-4"><PlatformBannerAd /></View>}

@@ -11,18 +11,20 @@ export type WeekItem = {
   days: Date[];
   repMonth: Date;
   stripeIndex: number; // 0/1 の交互ストライプ
+  dayKeys: string[]; // YYYY-MM-DD を事前計算
 };
 
 type Props = {
   days: Date[];
   repMonth: Date;
   stripeIndex: number;
+  dayKeys: string[];
   cellSize: number;
   cellHeight: number;
   onSelectDate?: (date: Date) => void;
 };
 
-export default function WeekRow({ days, repMonth, stripeIndex, cellSize, cellHeight, onSelectDate }: Props) {
+export default function WeekRow({ days, repMonth, stripeIndex, dayKeys, cellSize, cellHeight, onSelectDate }: Props) {
   const { t } = useThemeTokens();
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
@@ -40,8 +42,8 @@ export default function WeekRow({ days, repMonth, stripeIndex, cellSize, cellHei
   return (
     <View style={{ flex: 1, backgroundColor: rowBg, position: "relative" }}>
       <View className="flex-row flex-1">
-        {days.map((date) => {
-          const key = formatLocalDay(date);
+        {days.map((date, idx) => {
+          const key = dayKeys[idx] ?? formatLocalDay(date);
           const ids = indexByLocalDay[key] || [];
           const events = ids.map((id) => eventsById[id]).filter(Boolean);
           const isToday = key === todayKey;
