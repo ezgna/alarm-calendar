@@ -83,7 +83,7 @@ export default function DrawerLayout() {
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
       <Drawer.Screen name="index" options={{ drawerItemStyle: { display: "none" } }} />
-      <Drawer.Screen name="month" options={{ drawerLabel: "月カレンダー", title: "月カレンダー" }} />
+      <Drawer.Screen name="month" options={{ drawerLabel: "カレンダー", title: "カレンダー" }} />
       <Drawer.Screen name="week" options={{ drawerLabel: "週間ビュー", title: "週間ビュー", drawerItemStyle: { display: "none" } }} />
 
       {/* DrawerItemList 側では非表示。ドロワーに戻す場合は showTodayInDrawer を true にしてカスタム項目を復活させる */}
