@@ -5,6 +5,8 @@ import { Alert, Linking, Platform } from "react-native";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { useSubscriptionStore } from "../../features/subscription/store";
 
+const showTodayInDrawer = false; // ドロワーで今日を一時的に非表示。復活時は true。
+
 function CustomDrawerContent(props: any) {
   const isAndroid = Platform.OS === "android"; // Androidではプレミアム項目を非表示
   const isPremium = useSubscriptionStore((s) => s.isPremium);
@@ -16,13 +18,15 @@ function CustomDrawerContent(props: any) {
       {/* 既定のリスト（ただし day は非表示にしてある） */}
       <DrawerItemList {...props} />
       {/* 日（今日）へ移動するカスタム項目。params の残存を避けるため replace を使用 */}
-      <DrawerItem
-        label="今日"
-        onPress={() => {
-          props.navigation.closeDrawer();
-          router.replace("/(drawer)/day");
-        }}
-      />
+      {showTodayInDrawer && (
+        <DrawerItem
+          label="今日"
+          onPress={() => {
+            props.navigation.closeDrawer();
+            router.replace("/(drawer)/day");
+          }}
+        />
+      )}
       {showPremiumEntry && (
         <DrawerItem
           label="プレミアム"
@@ -34,7 +38,7 @@ function CustomDrawerContent(props: any) {
               await useSubscriptionStore.getState().refreshFromPurchases();
               return ok;
             } catch (e) {
-              console.warn(e)
+              console.warn(e);
               try {
                 await useSubscriptionStore.getState().refreshFromPurchases();
               } catch {}
@@ -80,9 +84,9 @@ export default function DrawerLayout() {
     >
       <Drawer.Screen name="index" options={{ drawerItemStyle: { display: "none" } }} />
       <Drawer.Screen name="month" options={{ drawerLabel: "月カレンダー", title: "月カレンダー" }} />
-      <Drawer.Screen name="week" options={{ drawerLabel: "週間ビュー", title: "週間ビュー" }} />
+      <Drawer.Screen name="week" options={{ drawerLabel: "週間ビュー", title: "週間ビュー", drawerItemStyle: { display: "none" } }} />
 
-      {/* DrawerItemList 側では非表示にし、上のカスタム項目から遷移させる */}
+      {/* DrawerItemList 側では非表示。ドロワーに戻す場合は showTodayInDrawer を true にしてカスタム項目を復活させる */}
       <Drawer.Screen name="day" options={{ drawerLabel: "今日", title: "今日", drawerItemStyle: { display: "none" } }} />
     </Drawer>
   );

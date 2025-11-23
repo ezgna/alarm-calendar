@@ -5,8 +5,8 @@ export type SoundId =
   | 'telephoneRingtone'
   | 'xylophone';
 
-// 端末既定は使わず、アプリ内の ding_29s_fade.wav を「デフォルト音」として利用
-export const DEFAULT_SOUND_FILENAME = 'ding_29s_fade.wav';
+// 端末既定は使わず、アプリ内の ding.wav を「デフォルト音」として利用
+export const DEFAULT_SOUND_FILENAME = 'ding.wav';
 
 type SoundOption = {
   id: SoundId;
@@ -22,9 +22,9 @@ export const SOUND_CATALOG: Record<Exclude<SoundId, 'default'>, string> = {
   xylophone: 'xylophone_29s_fade.wav',
 };
 
-// プレビュー用のローカルアセット。default も ding_29s_fade.wav を再生する。
+// プレビュー用のローカルアセット。default も ding.wav を再生する。
 export const SOUND_PREVIEW_ASSETS: Partial<Record<SoundId, number>> = {
-  default: require('../../assets/sounds/ding_29s_fade.wav'),
+  default: require('../../assets/sounds/ding.wav'),
   phoneRingtone: require('../../assets/sounds/phone_ringtone_29s_fade.wav'),
   smartphoneRingtone: require('../../assets/sounds/smartphone_ringtone_29s_fade.wav'),
   telephoneRingtone: require('../../assets/sounds/telephone_ringtone_29s_fade.wav'),

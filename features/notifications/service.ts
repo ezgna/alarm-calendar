@@ -18,7 +18,7 @@ let initialized = false;
 let androidChannelsPrepared = false;
 
 const ANDROID_CHANNELS: Record<SoundId, { id: string; name: string; sound: string | null }> = {
-  default: { id: "reminder-default", name: "リマインダー（既定）", sound: DEFAULT_SOUND_FILENAME }, // 端末既定ではなく ding_29s_fade.wav を利用
+  default: { id: "reminder-default", name: "リマインダー（既定）", sound: DEFAULT_SOUND_FILENAME }, // 端末既定ではなく ding.wav を利用
   phoneRingtone: { id: "reminder-phone", name: "リマインダー（クラシックベル）", sound: SOUND_CATALOG.phoneRingtone },
   smartphoneRingtone: { id: "reminder-smartphone", name: "リマインダー（スマホ着信）", sound: SOUND_CATALOG.smartphoneRingtone },
   telephoneRingtone: { id: "reminder-telephone", name: "リマインダー（黒電話）", sound: SOUND_CATALOG.telephoneRingtone },
@@ -96,7 +96,7 @@ export async function scheduleOnce(params: {
       return null; // 過去は予約しない
     }
 
-    // iOS: 'ding_29s_fade.wav'（既定も同じ）か 'xxx.wav'（パスなし）を渡す
+    // iOS: 'ding.wav'（既定も同じ）か 'xxx.wav'（パスなし）を渡す
     if (Platform.OS === "android") {
       await ensureAndroidChannels();
     }

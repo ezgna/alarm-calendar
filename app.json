@@ -41,7 +41,7 @@
         "expo-notifications",
         {
           "sounds": [
-            "./assets/sounds/ding_29s_fade.wav",
+            "./assets/sounds/ding.wav",
             "./assets/sounds/phone_ringtone_29s_fade.wav",
             "./assets/sounds/smartphone_ringtone_29s_fade.wav",
             "./assets/sounds/telephone_ringtone_29s_fade.wav",

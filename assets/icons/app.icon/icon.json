@@ -7,9 +7,8 @@
       "blur-material" : null,
       "layers" : [
         {
-          "hidden" : false,
-          "image-name" : "kami-alarm.png",
-          "name" : "kami-alarm"
+          "image-name" : "kami-alarm2.png",
+          "name" : "kami-alarm2"
         }
       ],
       "position" : {
