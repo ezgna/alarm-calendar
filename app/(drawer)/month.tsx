@@ -38,6 +38,7 @@ export default function Month() {
 
   const listRef = useRef<FlatList<WeekItem>>(null);
   const currentIndexRef = useRef<number>(0);
+  const initializedRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -60,12 +61,25 @@ export default function Month() {
     let cursor = start;
     while (cursor < end) {
       const days = Array.from({ length: 7 }, (_, i) => addDays(cursor, i));
-      const rep = days[3]; // 週の真ん中を代表月に使用
+      // 週内で日数が最も多い月を代表月にする（同数は後ろ優先）
+      const monthCounts: Record<string, { count: number; sample: Date }> = {};
+      days.forEach((d) => {
+        const key = `${d.getFullYear()}-${d.getMonth()}`;
+        monthCounts[key] = { count: (monthCounts[key]?.count ?? 0) + 1, sample: d };
+      });
+      const rep = Object.values(monthCounts).reduce((best, cur) => {
+        if (!best) return cur.sample;
+        const bestKey = `${best.getFullYear()}-${best.getMonth()}`;
+        const bestCount = monthCounts[bestKey].count;
+        if (cur.count > bestCount) return cur.sample;
+        if (cur.count === bestCount) return cur.sample; // 同数は後ろ優先
+        return best;
+      }, undefined as Date | undefined) as Date;
+
       const labelMonthDay = days.find((d) => d.getDate() === 1);
-      const stripeIndex = ((rep.getFullYear() - anchorDate.getFullYear()) * 12 + (rep.getMonth() - anchorDate.getMonth())) % 2;
       // 事前計算: 日毎のイベントキーだけ持たせる（実データは WeekRow で store から参照）
       const dayKeys = days.map((d) => `${d.getFullYear()}-${`${d.getMonth() + 1}`.padStart(2, "0")}-${`${d.getDate()}`.padStart(2, "0")}`);
-      weeks.push({ start: cursor, days, repMonth: rep, stripeIndex, dayKeys });
+      weeks.push({ start: cursor, days, repMonth: rep, dayKeys });
 
       if (labelMonthDay) {
         const key = monthKey(labelMonthDay);
@@ -79,13 +93,22 @@ export default function Month() {
     return { weeks, monthStartIndex, initialIndex: currentIdx >= 0 ? currentIdx : 0 };
   }, [anchorDate, currentDate]);
 
-  // 初期インデックスを同期
+  // 初期インデックスを同期（初回のみスクロール位置と月を揃える）
   useEffect(() => {
-    currentIndexRef.current = initialIndex;
-    const initialMonth = weeks[initialIndex]?.repMonth ?? currentDate;
-    setVisibleMonth(startOfMonth(initialMonth));
-    setDate(startOfMonth(initialMonth));
-  }, [initialIndex, weeks, setDate, currentDate]);
+    if (!weeks.length) return;
+    if (!initializedRef.current) {
+      initializedRef.current = true;
+      const safeIndex = clamp(initialIndex, 0, weeks.length - 1);
+      currentIndexRef.current = safeIndex;
+      const initialMonth = weeks[safeIndex]?.repMonth ?? currentDate;
+      const m = startOfMonth(initialMonth);
+      setVisibleMonth(m);
+      setDate(m);
+    } else {
+      // 週データ構造が変わった場合も、currentIndexRef だけ範囲内に補正
+      currentIndexRef.current = clamp(currentIndexRef.current, 0, weeks.length - 1);
+    }
+  }, [weeks, initialIndex, currentDate, setDate]);
 
   const handleSelectDate = useCallback((d: Date) => {
     setSelectedDate(d);
@@ -134,20 +157,57 @@ export default function Month() {
     setVisibleMonth(todayMonth);
   }, [scrollToIndex, goToday, monthStartIndex]);
 
-  // 画面中央付近の週をもとに月を決定（スクロール停止時のみ計算）
+  // 可視週の「見えている日数」を月ごとに集計し、最多の月をヘッダーに採用
   const updateMonthByOffset = useCallback(
     (offsetY: number, viewportH: number) => {
-      const mid = offsetY + viewportH / 2;
-      const idx = clamp(Math.round(mid / itemHeight), 0, weeks.length - 1);
-      const week = weeks[idx];
-      if (!week) return;
-      const monthDate = startOfMonth(week.repMonth);
+      if (!weeks.length) return;
+      const firstIdx = clamp(Math.floor(offsetY / itemHeight) - 1, 0, weeks.length - 1);
+      const lastIdx = clamp(Math.floor((offsetY + viewportH) / itemHeight) + 1, 0, weeks.length - 1);
+
+      const scores: Record<string, number> = {};
+      const dayHeight = itemHeight / 7;
+
+      for (let i = firstIdx; i <= lastIdx; i++) {
+        const week = weeks[i];
+        if (!week) continue;
+
+        const weekTop = i * itemHeight;
+        const weekBottom = weekTop + itemHeight;
+        const overlapTop = Math.max(weekTop, offsetY);
+        const overlapBottom = Math.min(weekBottom, offsetY + viewportH);
+        if (overlapBottom <= overlapTop) continue;
+
+        // 日単位で可視高さを積算
+        week.days.forEach((d, idx) => {
+          const dayTop = weekTop + idx * dayHeight;
+          const dayBottom = dayTop + dayHeight;
+          const visTop = Math.max(dayTop, overlapTop);
+          const visBottom = Math.min(dayBottom, overlapBottom);
+          const vis = Math.max(0, visBottom - visTop);
+          if (vis <= 0) return;
+          const key = monthKey(d);
+          scores[key] = (scores[key] ?? 0) + vis;
+        });
+      }
+
+      let bestMonthKey: string | undefined;
+      let bestScore = -1;
+      Object.entries(scores).forEach(([k, v]) => {
+        if (v > bestScore) {
+          bestScore = v;
+          bestMonthKey = k;
+        }
+      });
+
+      if (!bestMonthKey) return;
+      const [y, m] = bestMonthKey.split("-").map((v) => Number(v));
+      const monthDate = startOfMonth(new Date(y, m - 1, 1));
       if (monthDate.getTime() === visibleMonth.getTime()) return; // 変化なしならスキップ
-      currentIndexRef.current = idx;
+
       setVisibleMonth(monthDate);
       setDate(monthDate);
     },
-    [itemHeight, weeks, visibleMonth, setDate]
+    [itemHeight, weeks, setDate, visibleMonth]
   );
 
   const renderItem = useCallback(
@@ -157,7 +217,6 @@ export default function Month() {
           <WeekRow
             days={item.days}
             repMonth={item.repMonth}
-            stripeIndex={item.stripeIndex}
             dayKeys={item.dayKeys}
             cellSize={cellSize}
             cellHeight={cellHeight}

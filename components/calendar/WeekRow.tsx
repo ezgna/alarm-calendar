@@ -10,21 +10,19 @@ export type WeekItem = {
   start: Date;
   days: Date[];
   repMonth: Date;
-  stripeIndex: number; // 0/1 の交互ストライプ
   dayKeys: string[]; // YYYY-MM-DD を事前計算
 };
 
 type Props = {
   days: Date[];
   repMonth: Date;
-  stripeIndex: number;
   dayKeys: string[];
   cellSize: number;
   cellHeight: number;
   onSelectDate?: (date: Date) => void;
 };
 
-export default function WeekRow({ days, repMonth, stripeIndex, dayKeys, cellSize, cellHeight, onSelectDate }: Props) {
+export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, onSelectDate }: Props) {
   const { t } = useThemeTokens();
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
@@ -33,14 +31,8 @@ export default function WeekRow({ days, repMonth, stripeIndex, dayKeys, cellSize
   const repMonthYear = repMonth.getFullYear();
   const todayKey = formatLocalDay(new Date());
 
-  const stripeColors = t.flavor === "rose"
-    ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
-    : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"]; // mist もしくはその他
-
-  const rowBg = stripeColors[Math.abs(stripeIndex) % stripeColors.length];
-
   return (
-    <View style={{ flex: 1, backgroundColor: rowBg, position: "relative" }}>
+    <View style={{ flex: 1, position: "relative" }}>
       <View className="flex-row flex-1">
         {days.map((date, idx) => {
           const key = dayKeys[idx] ?? formatLocalDay(date);
@@ -49,11 +41,18 @@ export default function WeekRow({ days, repMonth, stripeIndex, dayKeys, cellSize
           const isToday = key === todayKey;
           const isSameMonth = date.getFullYear() === repMonthYear && date.getMonth() === repMonthValue;
 
+          // セル単位で月パリティ配色（同一列に異なる月が混ざっても個別に色分け）
+          const parity = ((date.getFullYear() * 12) + date.getMonth()) % 2;
+          const cellBgPalette = t.flavor === "rose"
+            ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
+            : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"];
+          const cellBg = cellBgPalette[parity];
+
           return (
             <TouchableOpacity
               key={key}
               className={`flex-1 p-1 border-r border-b ${t.border}`}
-              style={{ height: cellHeight, backgroundColor: "transparent" }}
+              style={{ height: cellHeight, backgroundColor: cellBg }}
               onPress={() => {
                 const d = new Date(date);
                 d.setHours(0, 0, 0, 0);
