@@ -13,6 +13,7 @@ import mobileAds from "react-native-google-mobile-ads";
 import { setConsent } from "@/lib/ads/consent";
 import { useAdsStore } from "@/features/ads/store";
 import { StatusBar } from 'expo-status-bar';
+import { TermsGate } from "@/components/terms/TermsGate";
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
@@ -85,11 +86,13 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="(drawer)" />
-        <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
-      </Stack>
-      <StatusBar style="dark" />
+      <TermsGate>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(drawer)" />
+          <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
+        </Stack>
+        <StatusBar style="dark" />
+      </TermsGate>
     </GestureHandlerRootView>
   );
 }
