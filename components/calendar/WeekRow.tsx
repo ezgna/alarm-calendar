@@ -19,11 +19,12 @@ type Props = {
   dayKeys: string[];
   cellSize: number;
   cellHeight: number;
+  monthLabelNumber?: number;
   onSelectDate?: (date: Date) => void;
 };
 
-export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, onSelectDate }: Props) {
-  const { t } = useThemeTokens();
+export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, monthLabelNumber, onSelectDate }: Props) {
+  const { t, flavor } = useThemeTokens();
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
 
@@ -33,6 +34,42 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
 
   return (
     <View style={{ flex: 1, position: "relative" }}>
+      {monthLabelNumber != null && (
+        // 2桁（月10,11,12）の場合は少し縮小してセル幅に収まるようにする
+        // （高さは2行ぶんを使う前提）
+        (() => {
+          const isDouble = monthLabelNumber >= 10;
+          const labelFontSize = cellHeight * (isDouble ? 0.7 : 0.9);
+          return (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            top: -cellHeight * 0.5,
+            // 水曜+木曜の2セル分を跨ぐ
+            left: cellSize * 2,
+            width: cellSize * 2,
+            height: cellHeight * 2,
+            justifyContent: "center",
+            alignItems: "center",
+            zIndex: 1,
+          }}
+        >
+          <Text
+            style={{
+              fontSize: labelFontSize,
+              fontWeight: "700",
+              color: "rgba(0,0,0,0.06)",
+              textAlign: "center",
+            }}
+            numberOfLines={1}
+          >
+            {monthLabelNumber}
+          </Text>
+        </View>
+          );
+        })()
+      )}
       <View className="flex-row flex-1">
         {days.map((date, idx) => {
           const key = dayKeys[idx] ?? formatLocalDay(date);
@@ -43,7 +80,7 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
 
           // セル単位で月パリティ配色（同一列に異なる月が混ざっても個別に色分け）
           const parity = ((date.getFullYear() * 12) + date.getMonth()) % 2;
-          const cellBgPalette = t.flavor === "rose"
+          const cellBgPalette = flavor === "rose"
             ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
             : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"];
           const cellBg = cellBgPalette[parity];

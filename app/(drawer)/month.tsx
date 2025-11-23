@@ -93,6 +93,24 @@ export default function Month() {
     return { weeks, monthStartIndex, initialIndex: currentIdx >= 0 ? currentIdx : 0 };
   }, [anchorDate, currentDate]);
 
+  // 各月ごとに「ラベルを出す週インデックス」を決定（真ん中あたりの週）
+  const weekLabelByIndex = useMemo(() => {
+    const byMonth: Record<string, number[]> = {};
+    weeks.forEach((w, idx) => {
+      const key = monthKey(w.repMonth);
+      (byMonth[key] ??= []).push(idx);
+    });
+    const result: Record<number, number> = {};
+    Object.entries(byMonth).forEach(([key, indices]) => {
+      const sorted = [...indices].sort((a, b) => a - b);
+      const mid = Math.floor(sorted.length / 2);
+      const labelIndex = sorted[mid];
+      const [, m] = key.split("-").map((v) => Number(v));
+      result[labelIndex] = m;
+    });
+    return result;
+  }, [weeks]);
+
   // 初期インデックスを同期（初回のみスクロール位置と月を揃える）
   useEffect(() => {
     if (!weeks.length) return;
@@ -211,13 +229,14 @@ export default function Month() {
   );
 
   const renderItem = useCallback(
-    ({ item }: { item: WeekItem }) => {
+    ({ item, index }: { item: WeekItem; index: number }) => {
       return (
         <View style={{ height: itemHeight }}>
           <WeekRow
             days={item.days}
             repMonth={item.repMonth}
             dayKeys={item.dayKeys}
+            monthLabelNumber={weekLabelByIndex[index]}
             cellSize={cellSize}
             cellHeight={cellHeight}
             onSelectDate={handleSelectDate}
@@ -225,7 +244,7 @@ export default function Month() {
         </View>
       );
     },
-    [cellSize, cellHeight, handleSelectDate, itemHeight]
+    [cellSize, cellHeight, handleSelectDate, itemHeight, weekLabelByIndex]
   );
 
   const keyExtractor = useCallback((item: WeekItem) => item.start.toISOString(), []);
@@ -249,9 +268,10 @@ export default function Month() {
         keyExtractor={keyExtractor}
         initialScrollIndex={initialIndex}
         getItemLayout={(_, index) => ({ length: itemHeight, offset: itemHeight * index, index })}
-        // スクロール停止時に月を判定（中央の週を採用）
+        // スクロール停止時に月を判定
         onScrollEndDrag={(e: NativeSyntheticEvent<NativeScrollEvent>) => updateMonthByOffset(e.nativeEvent.contentOffset.y, e.nativeEvent.layoutMeasurement.height)}
         onMomentumScrollEnd={(e: NativeSyntheticEvent<NativeScrollEvent>) => updateMonthByOffset(e.nativeEvent.contentOffset.y, e.nativeEvent.layoutMeasurement.height)}
+        scrollEventThrottle={16}
         initialNumToRender={8}
         windowSize={6}
         maxToRenderPerBatch={6}

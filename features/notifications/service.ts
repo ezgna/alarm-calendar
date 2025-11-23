@@ -117,6 +117,9 @@ export async function scheduleOnce(params: {
         title: params.title,
         body: params.body,
         sound: iosSound,
+        // iOS の時間に敏感な通知（Time Sensitive）として扱ってもらうための指定
+        // Expo のローカル通知では camelCase の timeSensitive を使う
+        interruptionLevel: "timeSensitive",
       },
       // DATE トリガー（絶対時刻）
       trigger: {

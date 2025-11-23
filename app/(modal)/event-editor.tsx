@@ -290,22 +290,17 @@ export default function EventEditor() {
               )}
             </View>
           </View>
-          {CUSTOM_PATTERN_KEYS.some((k) => {
-            const p = patterns[k];
-            return !(p && p.registered && (p.offsetsMin?.length ?? 0) > 0);
-          }) && (
-            <TouchableOpacity
-              className={`self-start mt-1 px-3 py-2 rounded-md`}
-              onPress={() => router.push("/(modal)/settings")}
-              style={{
-                backgroundColor: getColorHex(patternKeyToColorId(patternKey)).bg,
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-              }}
-            >
-              <Text style={{ color: '#0f172a' }}>アラームパターンを編集</Text>
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity
+            className={`self-start mt-1 px-3 py-2 rounded-md`}
+            onPress={() => router.push("/(modal)/settings")}
+            style={{
+              backgroundColor: getColorHex(patternKeyToColorId(patternKey)).bg,
+              borderWidth: 1,
+              borderColor: '#e5e7eb',
+            }}
+          >
+            <Text style={{ color: '#0f172a' }}>アラームパターンを編集</Text>
+          </TouchableOpacity>
         </View>
 
         <View className="gap-2">
