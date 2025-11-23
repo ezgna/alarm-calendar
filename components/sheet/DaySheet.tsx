@@ -49,7 +49,7 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
     router.push({ pathname: "/(modal)/event-editor", params: { id } });
   };
 
-  if (!date) return null;
+  const hasDate = !!date;
 
   return (
     <BottomSheet visible={visible} onRequestClose={onRequestClose} onClosed={onClosed}>
@@ -64,15 +64,17 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
           data={events}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={() => (
-            <View className="py-12 items-center gap-3">
-              <Text className={`text-base ${t.text}`}>予定なし</Text>
-              <CreateButton onPress={handleCreate} t={t} />
-            </View>
+            hasDate ? (
+              <View className="py-12 items-center gap-3">
+                <Text className={`text-base ${t.text}`}>予定なし</Text>
+                <CreateButton onPress={handleCreate} t={t} />
+              </View>
+            ) : null
           )}
           renderItem={({ item }) => <EventRow event={item} onPress={() => handleEdit(item.id)} />}
           ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
           ListFooterComponent={() => (
-            events.length > 0 ? (
+            hasDate && events.length > 0 ? (
               <View className="pt-4">
                 <CreateButton onPress={handleCreate} t={t} />
               </View>

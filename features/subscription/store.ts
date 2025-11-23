@@ -5,6 +5,8 @@
 import { create } from 'zustand';
 import Purchases, { PurchasesError, PurchasesErrorCode } from 'react-native-purchases';
 
+const DEV_PREMIUM = __DEV__ === true; // 開発ビルドでは常に Premium 扱い
+
 type State = {
   isPremium: boolean;
   lastMessage?: string;
@@ -20,13 +22,17 @@ type Actions = {
 };
 
 export const useSubscriptionStore = create<State & Actions>((set) => ({
-  isPremium: false,
+  isPremium: DEV_PREMIUM,
   busy: false,
   lastMessage: undefined,
 
   setIsPremium: (v) => set({ isPremium: v }),
 
   refreshFromPurchases: async () => {
+    if (DEV_PREMIUM) {
+      set({ isPremium: true, lastMessage: 'Dev mode: Premium unlocked' });
+      return;
+    }
     try {
       set({ busy: true, lastMessage: undefined });
       const info = await Purchases.getCustomerInfo();
@@ -42,6 +48,10 @@ export const useSubscriptionStore = create<State & Actions>((set) => ({
   },
 
   purchaseDefaultPackage: async () => {
+    if (DEV_PREMIUM) {
+      set({ isPremium: true, lastMessage: 'Dev mode: Premium unlocked' });
+      return;
+    }
     try {
       set({ busy: true, lastMessage: undefined });
       const offerings = await Purchases.getOfferings();
@@ -65,6 +75,10 @@ export const useSubscriptionStore = create<State & Actions>((set) => ({
   },
 
   restore: async () => {
+    if (DEV_PREMIUM) {
+      set({ isPremium: true, lastMessage: 'Dev mode: Premium unlocked' });
+      return;
+    }
     try {
       set({ busy: true, lastMessage: undefined });
       const info = await Purchases.restorePurchases();

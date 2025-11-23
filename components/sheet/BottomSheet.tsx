@@ -23,27 +23,19 @@ export default function BottomSheet({ visible, children, onRequestClose, onClose
   const openPosition = useMemo(() => Math.min(height * topOffsetRatio, height - 160), [height, topOffsetRatio]);
   const translateY = useSharedValue(hiddenPosition);
   const dragStart = useSharedValue(0);
-  const [mounted, setMounted] = useState(visible);
+  const [pointerEvents, setPointerEvents] = useState<'auto' | 'none'>(visible ? 'auto' : 'none');
 
   useEffect(() => {
-    if (visible) setMounted(true);
-  }, [visible]);
-
-  const handleHidden = useCallback(() => {
-    setMounted(false);
-    onClosed?.();
-  }, [onClosed]);
-
-  useEffect(() => {
-    if (!mounted) return;
     if (visible) {
+      setPointerEvents('auto');
       translateY.value = withTiming(openPosition, TIMING_CONFIG);
     } else {
       translateY.value = withTiming(hiddenPosition, TIMING_CONFIG, () => {
-        runOnJS(handleHidden)();
+        runOnJS(setPointerEvents)('none');
+        runOnJS(onClosed || (() => {}))();
       });
     }
-  }, [visible, mounted, hiddenPosition, openPosition, translateY, handleHidden]);
+  }, [visible, hiddenPosition, openPosition, translateY, onClosed]);
 
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -62,7 +54,7 @@ export default function BottomSheet({ visible, children, onRequestClose, onClose
         .onEnd((event) => {
           const shouldClose = translateY.value > openPosition + 80 || event.velocityY > 900;
           if (shouldClose) {
-            onRequestClose();
+            runOnJS(onRequestClose)();
           } else {
             translateY.value = withTiming(openPosition, TIMING_CONFIG);
           }
@@ -70,12 +62,12 @@ export default function BottomSheet({ visible, children, onRequestClose, onClose
     [dragStart, translateY, openPosition, hiddenPosition, onRequestClose]
   );
 
-  if (!mounted) return null;
-
   return (
     <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
       <GestureDetector gesture={pan}>
-        <Animated.View style={[styles.sheet, animatedStyle]}>{children}</Animated.View>
+        <Animated.View style={[styles.sheet, animatedStyle]} pointerEvents={pointerEvents}>
+          {children}
+        </Animated.View>
       </GestureDetector>
     </View>
   );

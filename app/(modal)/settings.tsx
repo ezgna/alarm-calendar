@@ -333,7 +333,7 @@ export default function Settings() {
           </View>
 
           {/* その他 */}
-          <View style={{ gap: 8 }}>
+          {/* <View style={{ gap: 8 }}>
             <Text className={`${t.textMuted}`}>その他</Text>
             <TouchableOpacity
               className={`px-3 py-2 rounded-md border ${t.border}`}
@@ -341,7 +341,7 @@ export default function Settings() {
             >
               <Text className={`${t.text}`}>利用規約を表示</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
 
           <Button title="閉じる" onPress={() => router.back()} />
         </ScrollView>

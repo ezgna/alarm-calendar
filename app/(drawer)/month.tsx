@@ -38,8 +38,9 @@ export default function Month() {
     setSheetVisible(false);
   }, []);
 
+  // スワイプで閉じる際、アニメ完了前にコンテンツが消えるとクラッシュしやすいので遅延でクリアする
   const handleSheetClosed = useCallback(() => {
-    setActiveDate(null);
+    setTimeout(() => setActiveDate(null), 50);
   }, []);
 
   return (

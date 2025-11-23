@@ -2,11 +2,18 @@ import { Alert, Platform } from 'react-native';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from './store';
 
+const DEV_PREMIUM = __DEV__ === true; // 開発ビルドでは課金フローをスキップ
+
 // Premium解放のための共通ヘルパー
 // - 既にPremiumなら即true
 // - そうでなければPaywallを表示し、権限を同期してから結果を返す
 export async function requirePremium(): Promise<boolean> {
   try {
+    if (DEV_PREMIUM) {
+      useSubscriptionStore.getState().setIsPremium(true);
+      return true;
+    }
+
     if (useSubscriptionStore.getState().isPremium) {
       return true;
     }
