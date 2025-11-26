@@ -97,8 +97,8 @@ function EventRow({ event, onPress }: RowProps) {
   const { t } = useThemeTokens();
   const c = getColorClasses(event.colorId ?? DEFAULT_COLOR_ID);
   const start = new Date(event.startAt);
-  const end = new Date(event.endAt);
-  const timeLabel = `${timeFormatter.format(start)}〜${timeFormatter.format(end)}`;
+  // 新規予定作成では終了時刻を入力していないため、DaySheet 上では開始時刻のみを表示する
+  const timeLabel = timeFormatter.format(start);
 
   return (
     <Pressable onPress={onPress} className={`rounded-2xl p-4 ${t.surfaceBg}`}>

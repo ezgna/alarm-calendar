@@ -36,37 +36,36 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
     <View style={{ flex: 1, position: "relative" }}>
       {monthLabelNumber != null && (
         // 2桁（月10,11,12）の場合は少し縮小してセル幅に収まるようにする
-        // （高さは2行ぶんを使う前提）
+        // この週+次の週の2行ぶんを跨ぎつつ、水曜カラム中央に表示する
         (() => {
           const isDouble = monthLabelNumber >= 10;
-          const labelFontSize = cellHeight * (isDouble ? 0.7 : 0.9);
+          const labelFontSize = cellHeight * (isDouble ? 0.45 : 0.55);
           return (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: -cellHeight * 0.5,
-            // 水曜+木曜の2セル分を跨ぐ
-            left: cellSize * 2,
-            width: cellSize * 2,
-            height: cellHeight * 2,
-            justifyContent: "center",
-            alignItems: "center",
-            zIndex: 1,
-          }}
-        >
-          <Text
-            style={{
-              fontSize: labelFontSize,
-              fontWeight: "700",
-              color: "rgba(0,0,0,0.06)",
-              textAlign: "center",
-            }}
-            numberOfLines={1}
-          >
-            {monthLabelNumber}
-          </Text>
-        </View>
+            <View
+              pointerEvents="none"
+              style={{
+                position: "absolute",
+                top: -cellHeight,
+                left: cellSize * 3,
+                width: cellSize,
+                height: cellHeight * 2,
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 1,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: labelFontSize,
+                  fontWeight: "700",
+                  color: "rgba(0,0,0,0.06)",
+                  textAlign: "center",
+                }}
+                numberOfLines={1}
+              >
+                {monthLabelNumber}
+              </Text>
+            </View>
           );
         })()
       )}

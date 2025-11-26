@@ -10,7 +10,9 @@ import { useCalendarStore } from "../../features/calendar/store";
 import { useThemeTokens } from "../../features/theme/useTheme";
 import { addDays, addMonths, startOfMonth, startOfWeek } from "../../lib/date";
 
-const MONTH_SPAN = 12; // 前後に用意する月バッファを縮小して初期レンダリング負荷を低減
+// 表示範囲: 過去1年 / 未来20年ぶんを用意して、初期レンダリング負荷を抑えつつ十分なスクロール幅を確保
+const PAST_MONTH_SPAN = 12; // 過去12ヶ月
+const FUTURE_MONTH_SPAN = 240; // 未来240ヶ月（20年）
 const DAY_CELL_HEIGHT = 102; // 日セル縦幅：ここを変えれば高さを調整可能
 
 function formatTitle(date: Date) {
@@ -52,8 +54,8 @@ export default function Month() {
 
   // 週データ生成（空白セルなし連続日）
   const { weeks, monthStartIndex, initialIndex } = useMemo(() => {
-    const start = startOfWeek(addMonths(anchorDate, -MONTH_SPAN), 0);
-    const endMonth = addMonths(anchorDate, MONTH_SPAN + 1);
+    const start = startOfWeek(addMonths(anchorDate, -PAST_MONTH_SPAN), 0);
+    const endMonth = addMonths(anchorDate, FUTURE_MONTH_SPAN + 1);
     const end = startOfWeek(endMonth, 0);
 
     const weeks: WeekItem[] = [];
