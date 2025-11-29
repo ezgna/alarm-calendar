@@ -1,7 +1,6 @@
 {
   "ios": {
-    "CFBundleDisplayName": "神アラーム",
-    "CFBundleName": "神アラーム"
+    "CFBundleDisplayName": "神アラーム dev"
   },
   "android": {
     "app_name": "神アラーム"
