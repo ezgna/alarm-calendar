@@ -2,7 +2,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, NativeScrollEvent, NativeSyntheticEvent, Text, View, useWindowDimensions } from "react-native";
-import WeekRow, { WeekItem } from "../../components/calendar/WeekRow";
+import MonthWeekRow, { MonthWeekItem } from "../../components/calendar/MonthWeekRow";
 import Header from "../../components/common/Header";
 import PlatformBannerAd from "../../components/common/PlatformBannerAd";
 import DaySheet from "../../components/sheet/DaySheet";
@@ -38,7 +38,7 @@ export default function Month() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
 
-  const listRef = useRef<FlatList<WeekItem>>(null);
+  const listRef = useRef<FlatList<MonthWeekItem>>(null);
   const currentIndexRef = useRef<number>(0);
   const initializedRef = useRef(false);
 
@@ -58,7 +58,7 @@ export default function Month() {
     const endMonth = addMonths(anchorDate, FUTURE_MONTH_SPAN + 1);
     const end = startOfWeek(endMonth, 0);
 
-    const weeks: WeekItem[] = [];
+    const weeks: MonthWeekItem[] = [];
     const monthStartIndex: Record<string, number> = {};
     let cursor = start;
     while (cursor < end) {
@@ -231,10 +231,10 @@ export default function Month() {
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: WeekItem; index: number }) => {
+    ({ item, index }: { item: MonthWeekItem; index: number }) => {
       return (
         <View style={{ height: itemHeight }}>
-          <WeekRow
+          <MonthWeekRow
             days={item.days}
             repMonth={item.repMonth}
             dayKeys={item.dayKeys}
@@ -249,7 +249,7 @@ export default function Month() {
     [cellSize, cellHeight, handleSelectDate, itemHeight, weekLabelByIndex]
   );
 
-  const keyExtractor = useCallback((item: WeekItem) => item.start.toISOString(), []);
+  const keyExtractor = useCallback((item: MonthWeekItem) => item.start.toISOString(), []);
 
   return (
     <View className={`flex-1 ${t.appBg}`}>

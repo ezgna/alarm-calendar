@@ -7,6 +7,8 @@ import { getColorClasses, DEFAULT_COLOR_ID } from "@/components/common/colorVari
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { formatLocalDay } from "@/lib/date";
+import { useHolidayStore } from "@/features/holidays/store";
+import type { JpHoliday } from "@/features/holidays/service";
 
 const timeFormatter = new Intl.DateTimeFormat("ja-JP", { hour: "2-digit", minute: "2-digit", hour12: false });
 const dateFormatter = new Intl.DateTimeFormat("ja-JP", { year: "numeric", month: "long", day: "numeric", weekday: "short" });
@@ -24,6 +26,7 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
 
   const indexByLocalDay = useEventStore((state) => state.indexByLocalDay);
   const eventsById = useEventStore((state) => state.eventsById);
+  const getHolidaysByDate = useHolidayStore((s) => s.getByDate);
   const events = useMemo(() => {
     if (!date) return [];
     const key = formatLocalDay(date);
@@ -31,6 +34,10 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
     return ids.map((id) => eventsById[id]).filter(Boolean);
   }, [date, indexByLocalDay, eventsById]);
   const headerLabel = useMemo(() => (date ? dateFormatter.format(date) : ""), [date]);
+  const holidays: JpHoliday[] = useMemo(() => {
+    if (!date) return [];
+    return getHolidaysByDate(date);
+  }, [date, getHolidaysByDate]);
 
   const handleCreate = () => {
     if (!date) return;
@@ -55,7 +62,14 @@ export default function DaySheet({ visible, date, onRequestClose, onClosed }: Pr
     <BottomSheet visible={visible} onRequestClose={onRequestClose} onClosed={onClosed}>
       <View className={`flex-1 ${t.appBg}`}>
         <View className="px-5 pt-4 pb-3 border-b border-neutral-200 flex-row items-center justify-between">
-          <Text className={`text-base font-semibold ${t.text}`}>{headerLabel}</Text>
+          <View className="flex-1">
+            <Text className={`text-base font-semibold ${t.text}`}>{headerLabel}</Text>
+            {holidays.length > 0 && (
+              <Text className="mt-0.5 text-xs text-red-500" numberOfLines={1}>
+                {holidays.map((h) => h.name).join(" / ")}
+              </Text>
+            )}
+          </View>
           <Pressable onPress={onRequestClose} hitSlop={8}>
             <Ionicons name="close" size={24} color={closeIconColor} />
           </Pressable>

@@ -5,8 +5,10 @@ import { useEventStore } from "../../features/events/store";
 import { router } from "expo-router";
 import { getColorClasses, DEFAULT_COLOR_ID } from "../common/colorVariants";
 import { useThemeTokens } from "../../features/theme/useTheme";
+import { useHolidayStore } from "../../features/holidays/store";
+import type { JpHoliday } from "../../features/holidays/service";
 
-export type WeekItem = {
+export type MonthWeekItem = {
   start: Date;
   days: Date[];
   repMonth: Date;
@@ -23,10 +25,11 @@ type Props = {
   onSelectDate?: (date: Date) => void;
 };
 
-export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, monthLabelNumber, onSelectDate }: Props) {
+export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, monthLabelNumber, onSelectDate }: Props) {
   const { t, flavor } = useThemeTokens();
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
+  const getHolidaysByDate = useHolidayStore((s) => s.getByDate);
 
   const repMonthValue = repMonth.getMonth();
   const repMonthYear = repMonth.getFullYear();
@@ -76,13 +79,21 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
           const events = ids.map((id) => eventsById[id]).filter(Boolean);
           const isToday = key === todayKey;
           const isSameMonth = date.getFullYear() === repMonthYear && date.getMonth() === repMonthValue;
+          const holidays = getHolidaysByDate(date) as JpHoliday[];
+          const isHoliday = holidays.length > 0 && isSameMonth;
 
           // セル単位で月パリティ配色（同一列に異なる月が混ざっても個別に色分け）
           const parity = ((date.getFullYear() * 12) + date.getMonth()) % 2;
-          const cellBgPalette = flavor === "rose"
-            ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
-            : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"];
+          const cellBgPalette =
+            flavor === "rose"
+              ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
+              : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"];
           const cellBg = cellBgPalette[parity];
+
+          const displayedEvents = isHoliday ? events.slice(0, 2) : events.slice(0, 3);
+          const moreCount = events.length - displayedEvents.length;
+          const dayColorClass = isToday ? "" : isHoliday ? "text-red-500" : isSameMonth ? t.text : t.textMuted;
+          const dayTextClass = `text-xs ${isToday ? "font-bold" : ""} ${dayColorClass}`;
 
           return (
             <TouchableOpacity
@@ -112,13 +123,16 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
                     className={`${isToday ? t.badgeTodayBg : "bg-transparent"} rounded-full items-center justify-center`}
                     style={{ width: 24, height: 24 }}
                   >
-                    <Text className={`text-xs ${isToday ? "font-bold" : isSameMonth ? t.text : t.textMuted}`}>
-                      {date.getDate()}
-                    </Text>
+                    <Text className={dayTextClass}>{date.getDate()}</Text>
                   </View>
                 </View>
+                {isHoliday && holidays[0] && (
+                  <Text className="mt-0.5 text-[10px] text-red-500" numberOfLines={1}>
+                    {holidays[0].name}
+                  </Text>
+                )}
                 <View className="mt-1 gap-0.5">
-                  {events.slice(0, 3).map((e) => {
+                  {displayedEvents.map((e) => {
                     const c = getColorClasses(e.colorId ?? DEFAULT_COLOR_ID);
                     return (
                       <View key={e.id} className="w-full">
@@ -130,7 +144,7 @@ export default function WeekRow({ days, repMonth, dayKeys, cellSize, cellHeight,
                       </View>
                     );
                   })}
-                  {events.length > 3 && <Text className={`text-[10px] ${t.textMuted}`}>+{events.length - 3}</Text>}
+                  {moreCount > 0 && <Text className={`text-[10px] ${t.textMuted}`}>+{moreCount}</Text>}
                 </View>
               </View>
             </TouchableOpacity>

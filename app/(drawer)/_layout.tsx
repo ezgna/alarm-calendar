@@ -54,6 +54,13 @@ function CustomDrawerContent(props: any) {
         }}
       />
       <DrawerItem
+        label="FAQ"
+        onPress={() => {
+          props.navigation.closeDrawer();
+          router.push("/(modal)/faq");
+        }}
+      />
+      <DrawerItem
         label="ポリシー"
         onPress={async () => {
           props.navigation.closeDrawer();

@@ -5,8 +5,8 @@ export type SoundId =
   | 'telephoneRingtone'
   | 'xylophone';
 
-// 端末既定は使わず、アプリ内の ding.wav を「デフォルト音」として利用
-export const DEFAULT_SOUND_FILENAME = 'ding.wav';
+// 端末既定は使わず、アプリ内の ding+9dB.wav を「デフォルト音」として利用
+export const DEFAULT_SOUND_FILENAME = 'ding+9dB.wav';
 
 type SoundOption = {
   id: SoundId;
@@ -16,23 +16,23 @@ type SoundOption = {
 
 // ファイル名は app.json の expo-notifications.sounds に登録したものと一致させる
 export const SOUND_CATALOG: Record<Exclude<SoundId, 'default'>, string> = {
-  phoneRingtone: 'phone_ringtone_29s_fade.wav',
-  smartphoneRingtone: 'smartphone_ringtone_29s_fade.wav',
-  telephoneRingtone: 'telephone_ringtone_29s_fade.wav',
-  xylophone: 'xylophone_29s_fade.wav',
+  phoneRingtone: 'phone_ringtone_29s_fade+9dB.wav',
+  smartphoneRingtone: 'smartphone_ringtone_29s_fade+9dB.wav',
+  telephoneRingtone: 'telephone_ringtone_29s_fade+9dB.wav',
+  xylophone: 'xylophone_29s_fade+9dB.wav',
 };
 
-// プレビュー用のローカルアセット。default も ding.wav を再生する。
+// プレビュー用のローカルアセット。default も ding+9dB.wav を再生する。
 export const SOUND_PREVIEW_ASSETS: Partial<Record<SoundId, number>> = {
-  default: require('../../assets/sounds/ding.wav'),
-  phoneRingtone: require('../../assets/sounds/phone_ringtone_29s_fade.wav'),
-  smartphoneRingtone: require('../../assets/sounds/smartphone_ringtone_29s_fade.wav'),
-  telephoneRingtone: require('../../assets/sounds/telephone_ringtone_29s_fade.wav'),
-  xylophone: require('../../assets/sounds/xylophone_29s_fade.wav'),
+  default: require('../../assets/sounds/ding+9dB.wav'),
+  phoneRingtone: require('../../assets/sounds/phone_ringtone_29s_fade+9dB.wav'),
+  smartphoneRingtone: require('../../assets/sounds/smartphone_ringtone_29s_fade+9dB.wav'),
+  telephoneRingtone: require('../../assets/sounds/telephone_ringtone_29s_fade+9dB.wav'),
+  xylophone: require('../../assets/sounds/xylophone_29s_fade+9dB.wav'),
 };
 
 // iOS: NotificationContent.sound へ渡す値を解決
-// 既定音も ding.wav を使用（端末既定は使わない）。カスタムは「ファイル名だけ」（パスなし）
+// 既定音も ding+9dB.wav を使用（端末既定は使わない）。カスタムは「ファイル名だけ」（パスなし）
 export const resolveIosSound = (id?: SoundId | string): string => {
   if (!id || id === 'default') return DEFAULT_SOUND_FILENAME;
   const resolved = SOUND_CATALOG[id as Exclude<SoundId, 'default'>];
