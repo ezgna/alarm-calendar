@@ -14,6 +14,8 @@ import { setConsent } from "@/lib/ads/consent";
 import { useAdsStore } from "@/features/ads/store";
 import { StatusBar } from 'expo-status-bar';
 import { TermsGate } from "@/components/terms/TermsGate";
+import { SubscriptionGate } from "@/components/subscription/SubscriptionGate";
+import { useCalendarStore } from "../features/calendar/store";
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
@@ -53,6 +55,11 @@ export default function RootLayout() {
         try {
           rebuildIndex(currentTimeZone());
         } catch {}
+        // バックグラウンドからフォアグラウンドへ戻ったタイミングで、
+        // カレンダーの日付を常に「今日」に揃える
+        try {
+          useCalendarStore.getState().goToday();
+        } catch {}
       }
     });
     return () => sub.remove();
@@ -87,11 +94,13 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <TermsGate>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="(drawer)" />
-          <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
-        </Stack>
-        <StatusBar style="dark" />
+        <SubscriptionGate>
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(drawer)" />
+            <Stack.Screen name="(modal)" options={{ presentation: "modal" }} />
+          </Stack>
+          <StatusBar style="dark" />
+        </SubscriptionGate>
       </TermsGate>
     </GestureHandlerRootView>
   );

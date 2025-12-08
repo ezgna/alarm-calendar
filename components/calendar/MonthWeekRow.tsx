@@ -34,6 +34,9 @@ export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHe
   const repMonthValue = repMonth.getMonth();
   const repMonthYear = repMonth.getFullYear();
   const todayKey = formatLocalDay(new Date());
+  // 当月を基準にパリティを決める（当月=必ず薄い色）
+  const currentMonthBase = new Date();
+  const currentMonthIndex = currentMonthBase.getFullYear() * 12 + currentMonthBase.getMonth();
 
   return (
     <View style={{ flex: 1, position: "relative" }}>
@@ -82,8 +85,11 @@ export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHe
           const holidays = getHolidaysByDate(date) as JpHoliday[];
           const isHoliday = holidays.length > 0 && isSameMonth;
 
-          // セル単位で月パリティ配色（同一列に異なる月が混ざっても個別に色分け）
-          const parity = ((date.getFullYear() * 12) + date.getMonth()) % 2;
+          // セル単位で月パリティ配色（当月を必ず「薄い色」にする）
+          const monthIndex = date.getFullYear() * 12 + date.getMonth();
+          let diff = monthIndex - currentMonthIndex;
+          let parity = diff % 2;
+          if (parity < 0) parity += 2;
           const cellBgPalette =
             flavor === "rose"
               ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]

@@ -5,7 +5,8 @@
 import { create } from 'zustand';
 import Purchases, { PurchasesError, PurchasesErrorCode } from 'react-native-purchases';
 
-const DEV_PREMIUM = __DEV__ === true; // 開発ビルドでは常に Premium 扱い
+// 開発ビルドでも挙動確認のために Premium を強制しない
+const DEV_PREMIUM = false;
 
 type State = {
   isPremium: boolean;

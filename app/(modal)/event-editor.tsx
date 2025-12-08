@@ -2,7 +2,6 @@ import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/d
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import ColorPicker from "../../components/common/ColorPicker";
 import { getColorHex } from "../../components/common/colorVariants";
 import { useEventStore } from "../../features/events/store";
 import { getPatternTextColor, getPatternTint, patternKeyToColorId } from "../../features/notifications/patternColors";
@@ -228,13 +227,6 @@ export default function EventEditor() {
           )}
         </View>
         */}
-
-        {isEdit && (
-          <View className="gap-2">
-            <Text className={`text-sm ${t.textMuted}`}>カテゴリ色</Text>
-            <ColorPicker value={colorId} onChange={setColorId} />
-          </View>
-        )}
 
         {/* アラームパターン選択 */}
         <View className="gap-2">
