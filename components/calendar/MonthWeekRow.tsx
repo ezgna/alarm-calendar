@@ -92,7 +92,7 @@ export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHe
           if (parity < 0) parity += 2;
           const cellBgPalette =
             flavor === "rose"
-              ? ["rgba(255,248,245,0.85)", "rgba(255,243,237,0.85)"]
+              ? ["rgba(255,252,250,0.86)", "rgba(255,243,237,0.85)"]
               : ["rgba(247,250,252,0.8)", "rgba(241,245,249,0.8)"];
           const cellBg = cellBgPalette[parity];
 

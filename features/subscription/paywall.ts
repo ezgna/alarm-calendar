@@ -2,8 +2,8 @@ import { Alert, Platform } from 'react-native';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import { useSubscriptionStore } from './store';
 
-// 開発ビルドでも課金フローを通して挙動確認できるよう、強制 Premium は無効化
-const DEV_PREMIUM = false;
+// 開発ビルドでは常にPremium扱いにする（本番ビルドでは false）
+const DEV_PREMIUM = __DEV__;
 
 // Premium解放のための共通ヘルパー
 // - 既にPremiumなら即true
