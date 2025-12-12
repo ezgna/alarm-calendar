@@ -1,7 +1,7 @@
 import { DrawerContentScrollView, DrawerItem, DrawerItemList } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import { Alert, Linking, Platform } from "react-native";
+import { Platform } from "react-native";
 import RevenueCatUI, { PAYWALL_RESULT } from "react-native-purchases-ui";
 import { useSubscriptionStore } from "../../features/subscription/store";
 
@@ -12,7 +12,6 @@ function CustomDrawerContent(props: any) {
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const isSubscriptionDisabled = isAndroid;
   const showPremiumEntry = !isSubscriptionDisabled && !isPremium;
-  const policyUrl = "https://sites.google.com/view/dotakyanbancho/%E3%83%97%E3%83%A9%E3%82%A4%E3%83%90%E3%82%B7%E3%83%BC%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC";
   return (
     <DrawerContentScrollView {...props}>
       {/* 既定のリスト（ただし day は非表示にしてある） */}
@@ -62,18 +61,9 @@ function CustomDrawerContent(props: any) {
       />
       <DrawerItem
         label="ポリシー"
-        onPress={async () => {
+        onPress={() => {
           props.navigation.closeDrawer();
-          Alert.alert("外部リンクを開きます", "ブラウザでプライバシーポリシーを開きますか？", [
-            { text: "キャンセル", style: "cancel" },
-            {
-              text: "開く",
-              style: "default",
-              onPress: async () => {
-                await Linking.openURL(policyUrl);
-              },
-            },
-          ]);
+          router.push("/(modal)/privacy");
         }}
       />
     </DrawerContentScrollView>

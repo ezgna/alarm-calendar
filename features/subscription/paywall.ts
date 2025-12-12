@@ -4,6 +4,7 @@ import { useSubscriptionStore } from './store';
 
 // 開発ビルドでは常にPremium扱いにする（本番ビルドでは false）
 const DEV_PREMIUM = __DEV__;
+// const DEV_PREMIUM = false;
 
 // Premium解放のための共通ヘルパー
 // - 既にPremiumなら即true
@@ -28,6 +29,8 @@ export async function requirePremium(): Promise<boolean> {
       const result = await RevenueCatUI.presentPaywallIfNeeded({
         requiredEntitlementIdentifier: 'premium',
       });
+
+      console.log('[requirePremium] paywall result =', result);
 
       const ok =
         result === PAYWALL_RESULT.PURCHASED ||

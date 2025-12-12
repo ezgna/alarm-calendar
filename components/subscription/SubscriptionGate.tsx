@@ -13,10 +13,17 @@ export function SubscriptionGate({ children }: Props) {
   const { t } = useThemeTokens();
   const isPremium = useSubscriptionStore((s) => s.isPremium);
   const busy = useSubscriptionStore((s) => s.busy);
+  const hydrated = useSubscriptionStore((s) => s.hydrated);
 
   // iOS 以外ではゲートしない（Android は現状課金非対応のため）
   if (Platform.OS !== "ios") {
     return <>{children}</>;
+  }
+
+  // 購読状態の同期が終わるまでは何も描画せず、
+  // SplashScreen 側での待機に任せる（チラつき防止）
+  if (!hydrated) {
+    return null;
   }
 
   // Premium 有効なら通常どおりレンダリング
@@ -33,7 +40,9 @@ export function SubscriptionGate({ children }: Props) {
       <View className="w-full max-w-md items-center gap-4">
         <Text className={`text-xl font-semibold text-center ${t.text}`}>プレミアム登録のお願い</Text>
         <Text className={`text-sm text-center ${t.textMuted}`}>
-          神アラームのご利用には、『30日間の無料お試しの登録』（サブスク登録）が必要です。登録が完了するまで、アプリ本体の機能は利用できません。
+          神アラームのご利用には、
+          <Text className="text-lg font-bold text-red-600">30日間の無料お試しの登録</Text>
+          （サブスク登録）が必要です。登録が完了するまで、アプリ本体の機能は利用できません。
         </Text>
         <Text className="text-lg font-bold text-center text-red-600">
           いつでも解約可能です。

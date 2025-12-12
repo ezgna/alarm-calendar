@@ -16,10 +16,14 @@ import { StatusBar } from 'expo-status-bar';
 import { TermsGate } from "@/components/terms/TermsGate";
 import { SubscriptionGate } from "@/components/subscription/SubscriptionGate";
 import { useCalendarStore } from "../features/calendar/store";
+import * as SplashScreen from "expo-splash-screen";
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 export default function RootLayout() {
   const rebuildIndex = useEventStore((s) => s.rebuildIndex);
   const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const subHydrated = useSubscriptionStore((s) => s.hydrated);
 
   useEffect(() => {
     Purchases.setLogLevel(LOG_LEVEL.ERROR);
@@ -41,6 +45,25 @@ export default function RootLayout() {
       useSubscriptionStore.getState().refreshFromPurchases();
     } catch {}
   }, []);
+
+  // SplashScreen を少なくとも0.5秒表示しつつ、
+  // 購入状態の同期完了後に非表示にする
+  useEffect(() => {
+    if (Platform.OS !== "ios") {
+      // iOS 以外は単純に0.5秒表示してから非表示にする
+      const timer = setTimeout(() => {
+        SplashScreen.hideAsync().catch(() => {});
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+
+    if (!subHydrated) return;
+
+    const timer = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [subHydrated]);
 
   useEffect(() => {
     // 通知の初期化（フォアグラウンド表示＋権限確認）
