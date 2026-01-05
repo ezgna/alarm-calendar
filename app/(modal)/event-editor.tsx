@@ -6,7 +6,7 @@ import { getColorHex } from "../../components/common/colorVariants";
 import { useEventStore } from "../../features/events/store";
 import { getPatternTextColor, getPatternTint, patternKeyToColorId } from "../../features/notifications/patternColors";
 import { SOUND_OPTIONS, type SoundId } from "../../features/notifications/sounds";
-import { CUSTOM_PATTERN_KEYS, PATTERN_KEYS, PatternKey, useNotificationStore } from "../../features/notifications/store";
+import { PATTERN_KEYS, PatternKey, useNotificationStore } from "../../features/notifications/store";
 import { useSubscriptionStore } from "../../features/subscription/store";
 import { useThemeTokens } from "../../features/theme/useTheme";
 import { addMinutes, fromUtcIsoToLocalDate, toUtcIsoString } from "../../lib/date";
@@ -70,15 +70,15 @@ export default function EventEditor() {
   useEffect(() => {
     if (!isPremium) {
       setPatternKey("default");
+      setColorId(patternKeyToColorId("default"));
     }
   }, [isPremium]);
 
-  // 新規作成時のみ、パターン変更に追従してカテゴリ色を自動設定
-  useEffect(() => {
-    if (!isEdit) {
-      setColorId(patternKeyToColorId(patternKey));
-    }
-  }, [isEdit, patternKey]);
+  const onSelectPatternKey = (k: PatternKey) => {
+    setPatternKey(k);
+    // パターンを変えたら、カレンダー表示色（event.colorId）も追従させる
+    setColorId(patternKeyToColorId(k));
+  };
 
   const formatDateTimeLabel = (date: Date) =>
     date.toLocaleString(undefined, {
@@ -138,10 +138,14 @@ export default function EventEditor() {
     if (!title.trim()) return; // タイトル必須
     const startIso = toUtcIsoString(start);
     const endIso = toUtcIsoString(end <= start ? addMinutes(start, 30) : end);
+    const nextColorId =
+      existing && ((eventPatternKeyByEventId[existing.id] as PatternKey) || "default") === patternKey
+        ? colorId
+        : patternKeyToColorId(patternKey);
     if (existing) {
-      update(existing.id, { title: title.trim(), colorId, memo, startAt: startIso, endAt: endIso }, { patternKey });
+      update(existing.id, { title: title.trim(), colorId: nextColorId, memo, startAt: startIso, endAt: endIso }, { patternKey });
     } else {
-      add({ title: title.trim(), colorId, memo, startAt: startIso, endAt: endIso }, { patternKey });
+      add({ title: title.trim(), colorId: nextColorId, memo, startAt: startIso, endAt: endIso }, { patternKey });
     }
     router.back();
   };
@@ -246,7 +250,7 @@ export default function EventEditor() {
                 <TouchableOpacity
                   key={k}
                   disabled={!usable}
-                  onPress={() => usable && setPatternKey(k)}
+                  onPress={() => usable && onSelectPatternKey(k)}
                   className={`px-3 py-2 rounded-md border`}
                   style={{
                     borderColor: border,

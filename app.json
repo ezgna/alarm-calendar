@@ -1,7 +1,7 @@
 {
   "expo": {
     "owner": "monashop0307",
-    "name": "神アラーム",
+    "name": "絶対予定を忘れないアラームカレンダー",
     "slug": "dotakyan-bancho",
     "version": "1.0",
     "orientation": "portrait",
@@ -55,9 +55,9 @@
           "image": "./assets/icons/splash-icon.png",
           "imageWidth": 100,
           "resizeMode": "contain",
-          "backgroundColor": "#7C9574",
+          "backgroundColor": "#89CBE8",
           "dark": {
-            "backgroundColor": "#7C9574"
+            "backgroundColor": "#89CBE8"
           }
         }
       ],

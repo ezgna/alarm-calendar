@@ -7,8 +7,15 @@
       "blur-material" : null,
       "layers" : [
         {
-          "image-name" : "kami-alarm2.png",
-          "name" : "kami-alarm2"
+          "image-name" : "IMG_1978.jpeg",
+          "name" : "IMG_1978",
+          "position" : {
+            "scale" : 0.9,
+            "translation-in-points" : [
+              0,
+              -40
+            ]
+          }
         }
       ],
       "position" : {

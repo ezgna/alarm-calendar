@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { PRIVACY_TEXT_JA } from './PrivacyText';
 
 type Props = {
@@ -11,7 +11,7 @@ export function PrivacyModal({ onClose }: Props) {
   const paragraphs = useMemo(() => PRIVACY_TEXT_JA.split('\n').filter((line) => line.trim().length > 0), []);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       <View style={{ flex: 1, padding: 16, gap: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ fontSize: 18, fontWeight: '600' }}>プライバシーポリシー</Text>
@@ -37,6 +37,6 @@ export function PrivacyModal({ onClose }: Props) {
           <Text style={{ fontWeight: '600', color: '#0F172A' }}>閉じる</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

@@ -1,8 +1,8 @@
 {
   "ios": {
-    "CFBundleDisplayName": "神アラームdev"
+    "CFBundleDisplayName": "絶対予定を忘れないアラームカレンダー"
   },
   "android": {
-    "app_name": "神アラーム"
+    "app_name": "絶対予定を忘れないアラームカレンダー"
   }
 }
