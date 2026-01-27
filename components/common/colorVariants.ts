@@ -1,13 +1,14 @@
 // NativeWind の className をリテラルで保持するカラー・バリアント定義
 
 // 新しいカテゴリ色（6色）
-export type ColorId = 'pink' | 'orange' | 'cream' | 'blue' | 'green' | 'yellow';
+export type ColorId = 'neutral' | 'pink' | 'orange' | 'cream' | 'blue' | 'green' | 'yellow';
 
-// 既定色はブルー系
+// 既定色はグリーン
 export const DEFAULT_COLOR_ID: ColorId = 'green';
 
 // 画面表示用の短い日本語ラベル
 export const COLOR_LABELS: Record<ColorId, string> = {
+  neutral: 'グレー',
   pink: 'ピンク',
   orange: 'オレンジ',
   cream: 'クリーム',
@@ -21,6 +22,7 @@ export const COLOR_VARIANTS: Record<
   ColorId,
   { bg: string; text: string; border?: string; dot: string }
 > = {
+  neutral: { bg: 'bg-[#9CA3AF]', text: 'text-black', border: 'border-[#9CA3AF]', dot: 'bg-[#9CA3AF]' },
   pink: { bg: 'bg-[#E1B7CF]', text: 'text-black', border: 'border-[#E1B7CF]', dot: 'bg-[#E1B7CF]' },
   orange: { bg: 'bg-[#F4CFA9]', text: 'text-black', border: 'border-[#F4CFA9]', dot: 'bg-[#F4CFA9]' },
   cream: { bg: 'bg-[#F9ECE3]', text: 'text-black', border: 'border-[#F9ECE3]', dot: 'bg-[#F9ECE3]' },
@@ -58,6 +60,7 @@ export const COLOR_IDS: ColorId[] = ['pink', 'orange', 'cream', 'blue', 'green',
 export type ColorHex = { bg: string; text: string; border: string };
 
 export const COLOR_HEX: Record<ColorId, ColorHex> = {
+  neutral: { bg: '#9CA3AF', text: '#000000', border: '#9CA3AF' },
   pink: { bg: '#E1B7CF', text: '#000000', border: '#E1B7CF' },
   orange: { bg: '#F4CFA9', text: '#000000', border: '#F4CFA9' },
   cream: { bg: '#F9ECE3', text: '#000000', border: '#F9ECE3' },

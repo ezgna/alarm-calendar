@@ -120,10 +120,10 @@ export default function Month() {
       initializedRef.current = true;
       const safeIndex = clamp(initialIndex, 0, weeks.length - 1);
       currentIndexRef.current = safeIndex;
-      const initialMonth = weeks[safeIndex]?.repMonth ?? currentDate;
-      const m = startOfMonth(initialMonth);
-      setVisibleMonth(m);
-      setDate(m);
+      // 起動直後の「表示月」は、週の代表月（repMonth）ではなく「今日の属する月」を基準にする。
+      // 例: 1/1 を含む週は 12月日数優勢になりやすく、repMonth を使うと 12月表示で起動してしまう。
+      setVisibleMonth(currentDate);
+      setDate(currentDate);
     } else {
       // 週データ構造が変わった場合も、currentIndexRef だけ範囲内に補正
       currentIndexRef.current = clamp(currentIndexRef.current, 0, weeks.length - 1);
@@ -241,12 +241,13 @@ export default function Month() {
             monthLabelNumber={weekLabelByIndex[index]}
             cellSize={cellSize}
             cellHeight={cellHeight}
+            visibleMonth={visibleMonth}
             onSelectDate={handleSelectDate}
           />
         </View>
       );
     },
-    [cellSize, cellHeight, handleSelectDate, itemHeight, weekLabelByIndex]
+    [cellSize, cellHeight, handleSelectDate, itemHeight, weekLabelByIndex, visibleMonth]
   );
 
   const keyExtractor = useCallback((item: MonthWeekItem) => item.start.toISOString(), []);

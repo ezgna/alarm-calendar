@@ -22,17 +22,20 @@ type Props = {
   cellSize: number;
   cellHeight: number;
   monthLabelNumber?: number;
+  visibleMonth: Date;
   onSelectDate?: (date: Date) => void;
 };
 
-export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, monthLabelNumber, onSelectDate }: Props) {
+export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHeight, monthLabelNumber, visibleMonth, onSelectDate }: Props) {
   const { t, flavor } = useThemeTokens();
   const indexByLocalDay = useEventStore((s) => s.indexByLocalDay);
   const eventsById = useEventStore((s) => s.eventsById);
   const getHolidaysByDate = useHolidayStore((s) => s.getByDate);
 
-  const repMonthValue = repMonth.getMonth();
-  const repMonthYear = repMonth.getFullYear();
+  // 「月内/月外」の判定は、その週の代表月ではなく、画面で採用している表示月（ヘッダー月）を基準にする。
+  // これにより、1月表示中に 1/1〜1/3 が「月外（薄字）」になったり、起動直後に 12月が選ばれる問題を避ける。
+  const visibleMonthValue = visibleMonth.getMonth();
+  const visibleMonthYear = visibleMonth.getFullYear();
   const todayKey = formatLocalDay(new Date());
   // 当月を基準にパリティを決める（当月=必ず薄い色）
   const currentMonthBase = new Date();
@@ -81,7 +84,7 @@ export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHe
           const ids = indexByLocalDay[key] || [];
           const events = ids.map((id) => eventsById[id]).filter(Boolean);
           const isToday = key === todayKey;
-          const isSameMonth = date.getFullYear() === repMonthYear && date.getMonth() === repMonthValue;
+          const isSameMonth = date.getFullYear() === visibleMonthYear && date.getMonth() === visibleMonthValue;
           const holidays = getHolidaysByDate(date) as JpHoliday[];
           const isHoliday = holidays.length > 0 && isSameMonth;
 

@@ -98,6 +98,6 @@ export function patternKeyToColorId(key: PatternKey): ColorId {
       return 'yellow';
     case 'default':
     default:
-      return 'green';
+      return 'neutral';
   }
 }
