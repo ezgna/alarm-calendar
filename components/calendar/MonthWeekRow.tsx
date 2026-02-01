@@ -86,7 +86,7 @@ export default function MonthWeekRow({ days, repMonth, dayKeys, cellSize, cellHe
           const isToday = key === todayKey;
           const isSameMonth = date.getFullYear() === visibleMonthYear && date.getMonth() === visibleMonthValue;
           const holidays = getHolidaysByDate(date) as JpHoliday[];
-          const isHoliday = holidays.length > 0 && isSameMonth;
+          const isHoliday = holidays.length > 0;
 
           // セル単位で月パリティ配色（当月を必ず「薄い色」にする）
           const monthIndex = date.getFullYear() * 12 + date.getMonth();
