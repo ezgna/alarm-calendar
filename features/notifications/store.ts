@@ -24,6 +24,15 @@ export type PatternDef = {
   soundId?: SoundId; // iOS: 通知サウンドID（未指定は 'default'）
 };
 
+const FIXED_CUSTOM_PATTERN_KEYS: PatternKey[] = ['A', 'B', 'C'];
+const isFixedPatternKey = (key: PatternKey) => FIXED_CUSTOM_PATTERN_KEYS.includes(key);
+
+const FIXED_CUSTOM_PATTERNS: Record<'A' | 'B' | 'C', PatternDef> = {
+  A: { name: '大事', offsetsMin: [1440, 60, 30, 5, 0], registered: true, soundId: 'phoneRingtone' },
+  B: { name: '普通', offsetsMin: [1440, 60, 5, 0], registered: true, soundId: 'telephoneRingtone' },
+  C: { name: 'ゆるめ', offsetsMin: [1440, 60, 5], registered: true, soundId: 'xylophone' },
+};
+
 type Mapping = Record<string, string[]>; // eventId -> [notificationId]
 
 type State = {
@@ -56,12 +65,25 @@ function clampAndSortOffsets(offsets: number[]): number[] {
   return normalized.slice(-5).length === normalized.length ? normalized : normalized.slice(0, 5);
 }
 
+function normalizePattern(input: PatternDef | undefined, fallback: PatternDef): PatternDef {
+  if (!input) return { ...fallback };
+  const offsets = Array.isArray(input.offsetsMin) ? clampAndSortOffsets(input.offsetsMin) : fallback.offsetsMin;
+  return {
+    ...fallback,
+    ...input,
+    name: input.name ?? fallback.name,
+    offsetsMin: offsets,
+    registered: typeof input.registered === 'boolean' ? input.registered : fallback.registered,
+    soundId: input.soundId ?? fallback.soundId,
+  };
+}
+
 function defaultPatterns(): Record<PatternKey, PatternDef> {
   return {
     default: { name: 'デフォルト', offsetsMin: [60, 5], registered: true, soundId: 'default' },
-    A: { name: 'カスタム1', offsetsMin: [], registered: false, soundId: 'default' },
-    B: { name: 'カスタム2', offsetsMin: [], registered: false, soundId: 'default' },
-    C: { name: 'カスタム3', offsetsMin: [], registered: false, soundId: 'default' },
+    A: { ...FIXED_CUSTOM_PATTERNS.A },
+    B: { ...FIXED_CUSTOM_PATTERNS.B },
+    C: { ...FIXED_CUSTOM_PATTERNS.C },
     D: { name: 'カスタム4', offsetsMin: [], registered: false, soundId: 'default' },
     E: { name: 'カスタム5', offsetsMin: [], registered: false, soundId: 'default' },
     F: { name: 'カスタム6', offsetsMin: [], registered: false, soundId: 'default' },
@@ -97,6 +119,7 @@ export const useNotificationStore = create<State & Actions>()(
 
       savePattern: (key, input) => {
         if (key === 'default') return; // デフォルトは編集不可
+        if (isFixedPatternKey(key)) return; // カスタム1〜3は固定
         if (!useSubscriptionStore.getState().isPremium) return; // Premium限定
         const offsets = clampAndSortOffsets(input.offsetsMin);
         set((s) => ({
@@ -190,7 +213,36 @@ export const useNotificationStore = create<State & Actions>()(
     }),
     {
       name: 'notification-store-v1',
+      version: 2,
       storage: createJSONStorage(() => mmkvStorage),
+      migrate: (persistedState, _version) => {
+        if (!persistedState || typeof persistedState !== 'object') {
+          return {
+            scheduledByEventId: {},
+            patterns: defaultPatterns(),
+            lastUsedPatternKey: undefined,
+            eventPatternKeyByEventId: {},
+          } as State;
+        }
+        const state = persistedState as State;
+        const base = defaultPatterns();
+        const prev = (state.patterns ?? {}) as Partial<Record<PatternKey, PatternDef>>;
+        const patterns: Record<PatternKey, PatternDef> = {
+          default: normalizePattern(prev.default, base.default),
+          A: { ...base.A },
+          B: { ...base.B },
+          C: { ...base.C },
+          D: normalizePattern(prev.D, base.D),
+          E: normalizePattern(prev.E, base.E),
+          F: normalizePattern(prev.F, base.F),
+        };
+        return {
+          scheduledByEventId: state.scheduledByEventId ?? {},
+          patterns,
+          lastUsedPatternKey: state.lastUsedPatternKey,
+          eventPatternKeyByEventId: state.eventPatternKeyByEventId ?? {},
+        };
+      },
       partialize: (s) => ({
         scheduledByEventId: s.scheduledByEventId,
         patterns: s.patterns,

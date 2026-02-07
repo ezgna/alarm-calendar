@@ -31,7 +31,9 @@ export default function Settings() {
   const [showCustom, setShowCustom] = useState(false);
   const [customHour, setCustomHour] = useState<string>("0");
   const [customMin, setCustomMin] = useState<string>("5");
+  const isFixedPatternKey = (k: PatternKey) => k === "A" || k === "B" || k === "C";
   const startEdit = (k: PatternKey) => {
+    if (isFixedPatternKey(k)) return;
     if (!isPremium && k !== "default") return;
     const p = patterns[k];
     setEditing(k);
@@ -148,6 +150,7 @@ export default function Settings() {
               const isEditing = editing === k;
               const isDefault = k === "default";
               const locked = !isPremium && !isDefault;
+              const fixed = isFixedPatternKey(k);
               const tint = getPatternTint(k);
               const active = editing === k;
               return (
@@ -182,7 +185,7 @@ export default function Settings() {
                             />
                             <Text className={`${t.text}`}>{p.name}</Text>
                           </View>
-                          {!isDefault && !locked && (
+                          {!isDefault && !locked && !fixed && (
                             <TouchableOpacity className={`px-3 py-1 rounded-md ${t.buttonNeutralBg}`} onPress={() => startEdit(k)}>
                               <Text className={`${t.buttonNeutralText}`}>編集</Text>
                             </TouchableOpacity>
